@@ -1,3 +1,0 @@
-# Preserve the archived public build byte-for-byte (including original line endings).
-forma-public-build/** -text
-forma-editable/public/** -text
