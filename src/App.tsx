@@ -51,7 +51,7 @@ export default function App() {
       <iframe
         ref={frame}
         className="forma-frame"
-        src={`/archive/index.html${window.location.hash}`}
+        src={`/forma-catalogue/index.html${window.location.hash}`}
         title="Site FORMA — copie publique locale"
         onLoad={() => setReady(true)}
         allow="autoplay; fullscreen"
