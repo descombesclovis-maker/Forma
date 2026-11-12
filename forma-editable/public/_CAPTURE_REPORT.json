@@ -1,0 +1,72 @@
+{
+  "timestamp": "2026-11-12T15:21:41.942Z",
+  "liveUrl": "https://forma-publier-maintenant.vercel.app/",
+  "kind": "public-compiled-distribution-not-original-source",
+  "sourceMaps": "not recovered unless publicly linked in assets",
+  "entriesDownloaded": 12,
+  "totalBytes": 1694414,
+  "limitReached": false,
+  "downloaded": [
+    {
+      "path": "index.html",
+      "bytes": 2477,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "path": "favicon.svg",
+      "bytes": 177,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "site.webmanifest",
+      "bytes": 280,
+      "contentType": "application/manifest+json; charset=utf-8"
+    },
+    {
+      "path": "assets/index-kVG0ynuN.js",
+      "bytes": 1328378,
+      "contentType": "application/javascript; charset=utf-8"
+    },
+    {
+      "path": "assets/index-CQUtWEvu.css",
+      "bytes": 203468,
+      "contentType": "text/css; charset=utf-8"
+    },
+    {
+      "path": "portfolio/identity-burgerking-forma-mono.webp",
+      "bytes": 55810,
+      "contentType": "image/webp"
+    },
+    {
+      "path": "portfolio/identity-forma.svg",
+      "bytes": 638,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "portfolio/identity-atelier.svg",
+      "bytes": 601,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "portfolio/identity-vanta.svg",
+      "bytes": 435,
+      "contentType": "image/svg+xml"
+    },
+    {
+      "path": "portfolio/site-patrimoine-forma-mono.webp",
+      "bytes": 35526,
+      "contentType": "image/webp"
+    },
+    {
+      "path": "portfolio/logos-palette-forma-mono.webp",
+      "bytes": 34762,
+      "contentType": "image/webp"
+    },
+    {
+      "path": "portfolio/ad-haier-forma-mono.webp",
+      "bytes": 31862,
+      "contentType": "image/webp"
+    }
+  ],
+  "failed": []
+}
