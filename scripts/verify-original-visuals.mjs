@@ -12,7 +12,7 @@ const css=load('public/assets/index-CQUtWEvu.css');
 const reference=load('public/archive/index.html');
 const catalogue=load('public/forma-catalogue/index.html');
 const app=load('src/App.tsx');
-const gitBlobHash=(content)=>createHash('sha1').update(`blob ${Buffer.byteLength(content,'utf8')}\0`).update(content,'utf8').digest('hex');
+const gitBlobHash=(content)=>{ const normalized=content.replace(/\r\n/g,'\n'); return createHash('sha1').update(`blob ${Buffer.byteLength(normalized,'utf8')}\0`).update(normalized,'utf8').digest('hex'); };
 const check=(ok,message)=>{ assert.ok(ok,message); console.log('✓ '+message); };
 assert.equal(gitBlobHash(original),'d57f7970c65065ae7a283c27d04e41ea50d12190','Archive JS du vrai FORMA modifiée');
 assert.equal(gitBlobHash(css),'77bfa4e4f6612fa38adf69fa123ce9b5ca081b7a','CSS original modifié');
