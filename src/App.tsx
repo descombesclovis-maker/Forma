@@ -10,6 +10,8 @@ import { useEffect, useRef, useState } from 'react';
 export default function App() {
   const frame = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
+  // ?reference=original affiche le FORMA archivé, avec son F et son logo d’origine.
+  const referenceOriginal = new URLSearchParams(window.location.search).get('reference') === 'original';
 
   useEffect(() => {
     const syncOuterHash = () => {
@@ -51,7 +53,7 @@ export default function App() {
       <iframe
         ref={frame}
         className="forma-frame"
-        src={`/forma-catalogue/index.html${window.location.hash}`}
+        src={`/${referenceOriginal ? 'archive' : 'forma-catalogue'}/index.html${window.location.hash}`}
         title="Site FORMA — copie publique locale"
         onLoad={() => setReady(true)}
         allow="autoplay; fullscreen"
