@@ -111,7 +111,8 @@ test("process accordions auto-open on scroll and respect manual toggles", async 
   await expect(page.locator("#step-detail-echange")).toContainText("Texte explicatif à personnaliser.");
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(exchange).toBeVisible();
-  await capture(page, "evolution-accordions-mobile", true);
+  await exchange.scrollIntoViewIfNeeded();
+  await capture(page, "evolution-accordions-mobile-viewport");
 });
 
 test("pricing estimator calculates live, shows detail and passes summary to contact", async ({ page }) => {
@@ -151,9 +152,11 @@ test("catalog examples open and close labelled conceptual previews", async ({ pa
   await page.getByRole("button", { name: "Fermer l’aperçu" }).click();
   await expect(dialog).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator(".service-catalog-row").first()).toBeVisible();
+  const firstService = page.locator(".service-catalog-row").first();
+  await expect(firstService).toBeVisible();
+  await firstService.scrollIntoViewIfNeeded();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await capture(page, "evolution-service-catalog-mobile", true);
+  await capture(page, "evolution-service-catalog-mobile-viewport");
 });
 
 test("contact validation remains real; no false success without backend", async ({ page }) => {
