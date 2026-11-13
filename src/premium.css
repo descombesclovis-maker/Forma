@@ -1015,3 +1015,15 @@ dd {
 .arrow-left {
   transform: rotate(225deg);
 }
+.request-summary {
+  border-top: 1px solid var(--line);
+  padding: 20px 0 30px;
+}
+.request-summary h3 {
+  font-size: 25px;
+  font-weight: 500;
+  margin: 10px 0;
+}
+.request-summary p {
+  font-size: 13px;
+}

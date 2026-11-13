@@ -137,10 +137,18 @@ test("archive et accueil : F WebGL, scroll réversible et logo conservés", asyn
       await expect(f.locator(".build-scene-wrap")).toBeAttached();
       await page.waitForTimeout(5000);
       const scene = f.locator(".build-scene-wrap");
-      await scene.evaluate((e)=>{const section=e.closest('section')!;window.scrollTo(0,section.getBoundingClientRect().top+window.scrollY+(section.offsetHeight-window.innerHeight)*0.65)});
+      await scene.evaluate((e) => {
+        const section = e.closest("section")!;
+        window.scrollTo(
+          0,
+          section.getBoundingClientRect().top +
+            window.scrollY +
+            (section.offsetHeight - window.innerHeight) * 0.65,
+        );
+      });
       await page.waitForTimeout(1200);
       await expect(f.locator("canvas").first()).toBeVisible();
-      await expect(scene).toHaveCSS('opacity','1');
+      await expect(scene).toHaveCSS("opacity", "1");
       await page.screenshot({
         path: `artifacts/${url === "/" ? "catalogue" : "reference"}-f-${viewport.width}.png`,
       });
@@ -151,7 +159,29 @@ test("archive et accueil : F WebGL, scroll réversible et logo conservés", asyn
       await logo.hover({ force: true });
       await f.locator("body").evaluate(() => window.scrollTo(0, 0));
       await page.waitForTimeout(500);
-      await expect(scene).toHaveCSS('opacity','0');
+      await expect(scene).toHaveCSS("opacity", "0");
     }
   }
+});
+test("continuité catalogue vers devis et navigation depuis le véritable accueil", async ({
+  page,
+}) => {
+  await page.goto("/#/sites");
+  await page.getByRole("link", { name: "Demander un devis" }).nth(3).click();
+  await expect(page.locator(".request-summary")).toContainText("Premium");
+  await page.goto("/#/logiciels");
+  await page
+    .getByRole("link", { name: "Parler de mon besoin" })
+    .first()
+    .click();
+  await expect(page.getByLabel("Votre prestation")).toHaveValue(
+    "Logiciels & applications",
+  );
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page
+    .frameLocator("iframe")
+    .getByRole("button", { name: "Sites web", exact: true })
+    .first()
+    .click();
+  await expect(page.locator("main h1")).toContainText("Une présence");
 });

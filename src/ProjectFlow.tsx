@@ -15,8 +15,15 @@ function readDraft(): Draft {
       localStorage.getItem("forma-configuration-v1") || "null",
     );
     return d && plans.some((p) => p.id === d.plan) && Array.isArray(d.options)
-      ? {plan:d.plan, options:d.options.filter((id:unknown)=>options.some(o=>o.id===id)),company:typeof d.company==='string'?d.company.slice(0,100):'',network:typeof d.network==='string'?d.network.slice(0,250):''}
-      : {...empty};
+      ? {
+          plan: d.plan,
+          options: d.options.filter((id: unknown) =>
+            options.some((o) => o.id === id),
+          ),
+          company: typeof d.company === "string" ? d.company.slice(0, 100) : "",
+          network: typeof d.network === "string" ? d.network.slice(0, 250) : "",
+        }
+      : { ...empty };
   } catch {
     return empty;
   }
@@ -247,14 +254,28 @@ function download(name: string, text: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export function Contact() {
+  const query = new URLSearchParams(location.hash.split("?")[1]);
+  const requestedPlan = query.get("offre");
+  const requestDraft = {
+    ...(preparedDraft || readDraft()),
+    ...(plans.some((p) => p.id === requestedPlan)
+      ? { plan: requestedPlan! }
+      : {}),
+  };
+  const prestation = query.get("prestation");
   const [stage, setStage] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState({
     name: "",
     email: "",
-    type: new URLSearchParams(location.hash.split("?")[1]).get("offre")
-      ? "Sites web"
-      : "Sites web",
+    type:
+      prestation === "logiciels"
+        ? "Logiciels & applications"
+        : prestation === "identites"
+          ? "Logos & identités"
+          : prestation === "reseaux"
+            ? "Réseaux & publicité"
+            : "Sites web",
     budget: "À définir",
     message: "",
     consent: false,
@@ -276,6 +297,23 @@ export function Contact() {
             Un besoin, une ambition, une question : posons les premières bases
             ensemble.
           </p>
+          {(requestedPlan || preparedDraft) && (
+            <div className="request-summary">
+              <p className="eyebrow">VOTRE CONFIGURATION</p>
+              <h3>{plans.find((p) => p.id === requestDraft.plan)?.name}</h3>
+              <p>{requestDraft.company}</p>
+              <p>
+                Base :{" "}
+                {money(
+                  plans.find((p) => p.id === requestDraft.plan)?.price ?? null,
+                )}{" "}
+                · Options sur devis
+              </p>
+              <Action to={`configurer?offre=${requestDraft.plan}`}>
+                Revoir ma configuration
+              </Action>
+            </div>
+          )}
           <p className="notice">
             La transmission des demandes n’est pas encore connectée. Vous pouvez
             préparer et télécharger votre demande ; rien ne sera envoyé.
@@ -309,7 +347,7 @@ export function Contact() {
                     .map(([k, v]) => `${k}: ${v}`)
                     .join("\n") +
                     "\n\nDEMANDE NON ENVOYÉE\n" +
-                    summary(preparedDraft || readDraft()),
+                    summary(requestDraft),
                 )
               }
             >

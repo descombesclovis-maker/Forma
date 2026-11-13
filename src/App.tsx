@@ -70,7 +70,9 @@ function Plans() {
             <a className="text-link" href={link(`contact?offre=${p.id}`)}>
               Demander un devis <Arrow />
             </a>
-            <a className="text-link" href={link('realisations')}>Voir les démonstrations <Arrow/></a>
+            <a className="text-link" href={link("realisations")}>
+              Voir les démonstrations <Arrow />
+            </a>
           </article>
         ))}
       </div>
@@ -159,7 +161,7 @@ function Family({ id }: { id: string }) {
                   : "Brief, livrables, formats, étapes de validation et conditions d’utilisation seront précisés avant la réalisation."}
               </p>
             </details>
-            <Action to="contact">
+            <Action to={`contact?prestation=${id}`}>
               {id === "logiciels"
                 ? "Parler de mon besoin"
                 : "Demander un devis"}
@@ -335,6 +337,14 @@ export default function App() {
     addEventListener("keydown", handler);
     return () => removeEventListener("keydown", handler);
   }, []);
+  useEffect(() => {
+    if (menu) {
+      document.querySelector<HTMLElement>("#main-menu a")?.focus();
+      return () => {
+        document.querySelector<HTMLElement>(".menu-toggle")?.focus();
+      };
+    }
+  }, [menu]);
   if (original || page === "accueil") return <Archive original={original} />;
   const known = [
     "univers",
@@ -354,7 +364,14 @@ export default function App() {
   ];
   return (
     <div className="premium">
-      <a className="skip" href="#main">
+      <a
+        className="skip"
+        href="#main"
+        onClick={(e) => {
+          e.preventDefault();
+          main.current?.focus();
+        }}
+      >
         Aller au contenu
       </a>
       <header className="premium-header">
@@ -410,7 +427,8 @@ export default function App() {
         tabIndex={-1}
         ref={main}
         className="premium-main"
-        key={page}
+        inert={menu}
+        key={hash}
       >
         {page === "univers" ? (
           <>
