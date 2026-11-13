@@ -205,7 +205,7 @@ function ServiceGallery() {
           <span className="service-catalog-number">{String(itemIndex + 1).padStart(2, "0")}</span>
           <div className="service-catalog-copy"><h3>{item.title}</h3><p>{item.description}</p><a href={`/nous-contacter?service=${encodeURIComponent(item.title)}`}>Discuter de ce service<Arrow /></a></div>
           <button className="service-example-button" type="button" onClick={(event) => { returnFocus.current = event.currentTarget; setPreview(item); }} aria-label={`Agrandir l’illustration : ${item.title}`}>
-            <img src={item.example.path} alt={`Illustration conceptuelle du service ${item.title}`} loading="lazy" /><span className="service-example-caption">{item.title}</span><span className="service-example-source">ILLUSTRATION CONCEPTUELLE</span>
+            <img src={item.example.path} alt={`Maquette de démonstration du service ${item.title}`} loading="lazy" /><span className="service-example-caption">{item.title}</span><span className="service-example-source">DÉMONSTRATION GRAPHIQUE</span>
           </button>
         </article>)}</div>
       </section>)}
@@ -215,7 +215,7 @@ function ServiceGallery() {
       <section className="service-preview-dialog" ref={previewDialog} role="dialog" aria-modal="true" aria-labelledby="service-preview-title">
         <button className="estimator-close" type="button" onClick={closePreview} aria-label="Fermer l’aperçu">×</button>
         <p className="section-eyebrow">EXEMPLE DE PRÉSENTATION · NON-CLIENT</p><h2 id="service-preview-title">{preview.title}</h2>
-        <img src={preview.example.path} alt={`Illustration conceptuelle : ${preview.title}`} /><p>{preview.example.provenance}</p>
+        <img src={preview.example.path} alt={`Maquette de démonstration : ${preview.title}`} /><p>{preview.example.provenance}</p>{preview.example.link && <a className="service-example-real-link" href={preview.example.link} target="_blank" rel="noopener noreferrer">Voir une référence réelle de ce type de service <span aria-hidden="true">↗</span></a>}
       </section>
     </div>}
   </>;
