@@ -11,7 +11,7 @@ function Scene() {
       trigger: section.current,
       start: 'top top',
       end: () => `+=${Math.round(window.innerHeight * 0.64)}`,
-      scrub: 0.52,
+      scrub: true,
       invalidateOnRefresh: true,
       fastScrollEnd: false,
       onUpdate: ({ progress }) => setProgress(Math.min(1, Math.max(0, progress))),
@@ -30,7 +30,7 @@ function Scene() {
           className: 'build-sticky',
           children: JSX.jsx('div', {
             className: 'build-scene-wrap',
-            style: { opacity: Math.min(1, progress / 0.055) },
+            style: { opacity: 1 },
             children: JSX.jsx(FormaScene, { progress, pointer: { x: 0, y: 0 } }),
           }),
         }),

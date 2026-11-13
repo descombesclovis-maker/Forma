@@ -65,13 +65,13 @@ const categories = [
     price: "Dès 149 €",
   },
   {
-    id: "identite",
-    name: "Identité Visuelle",
-    image: "/examples/identity.png",
-    description: "Charte graphique et supports de marque.",
-    source: "Exemple de charte : NASA",
-    url: "https://www.nasa.gov/wp-content/uploads/2015/01/nasa_graphics_manual_nhb_1430-2_jan_1976.pdf#page=8",
-    price: "Dès 290 €",
+    id: "publicite",
+    name: "Publicité",
+    image: "/original-client/portfolio/ad-haier-forma-mono.webp",
+    description: "Campagnes publicitaires digitales et visuelles, pensées pour capter l’attention et faire connaître votre offre.",
+    source: "Exemple publicitaire — étude de référence",
+    url: null,
+    price: "Sur devis",
   },
 ];
 export function Example({

@@ -15,7 +15,7 @@ const routes = [
   "sites",
   "logiciels",
   "logos",
-  "identite",
+  "publicite",
   "choix-site",
   "formulaire",
   "options",
@@ -47,7 +47,7 @@ export default function App() {
             <Home />
           ) : route === "catalogue" ? (
             <ProductCarousel />
-          ) : ["sites", "logiciels", "logos", "identite"].includes(route) ? (
+          ) : ["sites", "logiciels", "logos", "publicite"].includes(route) ? (
             <ProductPage id={route} />
           ) : route === "choix-site" ? (
             <SiteChoice />

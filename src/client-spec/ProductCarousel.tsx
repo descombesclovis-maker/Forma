@@ -8,7 +8,7 @@ type Product = {
   description: string;
   steps: string[];
   reference: string;
-  kind: "site" | "app" | "logo" | "identity";
+  kind: "site" | "app" | "logo" | "advertising";
 };
 
 const products: Product[] = [
@@ -58,19 +58,19 @@ const products: Product[] = [
     kind: "logo",
   },
   {
-    id: "identites",
-    name: "Identités visuelles",
+    id: "publicite",
+    name: "Publicité",
     description:
-      "Des univers graphiques cohérents et mémorables qui donnent vie à votre marque sur tous les supports.",
+      "Des campagnes publicitaires créatives et cohérentes pour capter l’attention, valoriser votre offre et faire agir votre audience.",
     steps: [
-      "Positionnement de marque",
-      "Direction artistique",
-      "Palette de couleurs",
-      "Typographie et éléments graphiques",
-      "Déclinaisons sur différents supports",
+      "Objectif et audience",
+      "Concept créatif",
+      "Création des visuels",
+      "Déclinaisons multi-supports",
+      "Diffusion et optimisation",
     ],
-    reference: "Référence d’identité : McDonald’s",
-    kind: "identity",
+    reference: "Référence publicitaire : McDonald’s (exemple)",
+    kind: "advertising",
   },
 ];
 
@@ -105,20 +105,20 @@ function ProductArtwork({ kind }: { kind: Product["kind"] }) {
     return (
       <div className="product-art product-art--logo" aria-hidden="true">
         <div className="logo-sheet"><small>FORM STUDY / 03</small><div className="nike-word">NIKE</div><svg className="nike-mark" viewBox="0 0 240 90"><path d="M18 56c28 7 70-3 111-24L214 4 127 66C83 95 34 84 18 56Z" /></svg><div className="logo-caption"><span>MOVE WITH INTENT</span><i>01 — SYMBOL</i></div></div>
-        <span className="art-label">IDENTITY / SYMBOL STUDY</span>
+        <span className="art-label">LOGO / SYMBOL STUDY</span>
       </div>
     );
   }
   return (
-    <div className="product-art product-art--identity" aria-hidden="true">
-      <div className="identity-board">
-        <div className="identity-sign"><svg viewBox="0 0 100 70"><path d="M7 63h86v-8H7zM12 56V44C12 23 27 7 50 7s38 16 38 37v12h-9V43c0-16-12-27-29-27S21 27 21 43v13z" /></svg><small>GOLDEN ARCHES / SIGN</small></div>
-        <div className="identity-cup"><b>M</b><i>i’m lovin’ it</i></div>
-        <div className="identity-bag"><b>M</b><span>GOOD TO GO</span></div>
-        <div className="identity-poster"><small>MADE FOR</small><b>GOOD<br />MOMENTS.</b><i>GLOBAL CAMPAIGN</i></div>
-        <div className="identity-swatches"><i /><i /><i /></div>
+    <div className="product-art product-art--advertising" aria-hidden="true">
+      <div className="ad-campaign-board">
+        <div className="ad-campaign-poster"><small>McDONALD’S / CAMPAGNE</small><b>UN BON MOMENT<br />ÇA SE PARTAGE.</b><span className="ad-arches">M</span><i>EXEMPLE PUBLICITAIRE</i></div>
+        <div className="ad-campaign-phone"><div className="ad-phone-top" /><small>À EMPORTER</small><b>LE PLAISIR<br />EN ROUTE.</b><span>Commander</span><i className="ad-arches">M</i></div>
+        <div className="ad-campaign-banner"><b>CHAQUE JOUR, UNE ENVIE.</b><span>McDONALD’S — ÉTUDE DE CAMPAGNE</span></div>
+        <div className="ad-campaign-card"><i className="ad-arches">M</i><b>GOOD<br />TO GO.</b><small>FORMAT SOCIAL / 01</small></div>
+        <div className="ad-campaign-orb" />
       </div>
-      <span className="art-label">BRAND SYSTEM / 04</span>
+      <span className="art-label">CAMPAGNE MULTI-SUPPORT / EXEMPLE</span>
     </div>
   );
 }
@@ -190,7 +190,28 @@ export function ProductCarousel() {
         <button className="product-nav product-nav--previous" type="button" onClick={() => goTo(active - 1)} aria-label="Produit précédent">
           <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M19.5 5.5 9 16l10.5 10.5M10 16h16" /></svg>
         </button>
-        <article className="product-card" key={product.id} aria-live="polite" aria-label={`${product.name}, catégorie ${active + 1} sur ${products.length}`}>
+        <article
+          className="product-card"
+          key={product.id}
+          aria-live="polite"
+          aria-label={`${product.name}, catégorie ${active + 1} sur ${products.length}`}
+          onPointerMove={(event: PointerEvent<HTMLElement>) => {
+            if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+            event.currentTarget.style.setProperty("--tilt-x", `${(0.5 - y) * 2.4}deg`);
+            event.currentTarget.style.setProperty("--tilt-y", `${(x - 0.5) * 2.8}deg`);
+            event.currentTarget.style.setProperty("--light-x", `${x * 100}%`);
+            event.currentTarget.style.setProperty("--light-y", `${y * 100}%`);
+          }}
+          onPointerLeave={(event: PointerEvent<HTMLElement>) => {
+            event.currentTarget.style.removeProperty("--tilt-x");
+            event.currentTarget.style.removeProperty("--tilt-y");
+            event.currentTarget.style.removeProperty("--light-x");
+            event.currentTarget.style.removeProperty("--light-y");
+          }}
+        >
           <div className="product-card-copy">
             <div className="product-card-index"><span>FORMA / PRODUITS</span><span>0{active + 1} — 0{products.length}</span></div>
             <p className="product-card-overline">{product.reference}</p>

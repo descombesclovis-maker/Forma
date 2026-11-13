@@ -1,13 +1,6 @@
 import { test, expect } from "@playwright/test";
 process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY = "1";
-const labels = [
-  "Vous connecter",
-  "Sites web",
-  "Logiciels",
-  "Logos",
-  "Identité Visuelle",
-  "Contact",
-];
+const labels = ["Nos expertises", "Contact", "Espace client"];
 async function shot(
   page: import("@playwright/test").Page,
   name: string,
@@ -67,9 +60,9 @@ test("header exact, petit F, centrage, menu et footer", async ({ page }) => {
   await page.locator(".spec-wordmark").click();
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   const footer = page.locator(".spec-footer");
-  await expect(footer.locator("a")).toHaveCount(8);
+  await expect(footer.locator("a")).toHaveCount(6);
   expect(await footer.innerText()).toBe(
-    "Forma®\nPolitique de confidentialité\nSites web\nLogiciels\nLogos\nIdentité Visuelle\nContact\nVous connecter\nTermes légaux",
+    "Forma®\nPolitique de confidentialité\nNos expertises\nContact\nEspace client\nTermes légaux",
   );
   await footer.scrollIntoViewIfNeeded();
   await shot(page, "footer-desktop");
@@ -80,7 +73,10 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   test.setTimeout(60000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".spec-orbit .spec-prism")).toHaveCount(3);
+  await expect(page.locator(".spec-assurances li")).toHaveCount(3);
+  await expect(page.locator(".spec-assurances li").nth(0)).toContainText("Livraison en 3 à 7 jours");
+  await expect(page.locator(".spec-assurances li").nth(1)).toContainText("Créations sans IA");
+  await expect(page.locator(".spec-assurances li").nth(2)).toContainText("Accompagnement client");
   await expect(page.locator(".spec-intro h1")).toHaveText(
     "Donnez forme à l’impossible",
   );
@@ -94,16 +90,21 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   await shot(page, "accueil-desktop");
   const f = page.frameLocator(".spec-build-frame");
   await expect(f.locator(".build-section")).toBeAttached();
+  await expect(page.locator(".spec-build-cta")).toBeHidden();
   await page.evaluate(() => scrollTo(0, innerHeight * 1.65));
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(800);
 
   await expect(f.locator(".build-scene-wrap")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".spec-build")).toHaveAttribute("data-cta-ready", "false");
   await expect(f.locator("canvas").first()).toBeVisible();
   await page.waitForTimeout(600);
   await shot(page, "grand-f-desktop");
   await page.evaluate(() => scrollTo(0, 0));
-  await expect(f.locator(".build-scene-wrap")).toHaveCSS("opacity", "0");
+  await expect(f.locator(".build-scene-wrap")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".spec-build")).toHaveAttribute("data-cta-ready", "false");
   await page.evaluate(() => scrollTo(0, innerHeight * 1.8));
+  await expect(page.locator(".spec-build")).toHaveAttribute("data-cta-ready", "true");
+  await expect(page.getByRole("link", { name: "Démarrer mon projet" })).toBeVisible();
   await page.getByRole("link", { name: "Démarrer mon projet" }).click();
   await expect(page.locator("main h1")).toHaveText(
     "Choisissez ce que nous allons créer.",
@@ -114,7 +115,7 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
     [0, "Sites web"],
     [1, "Applications"],
     [2, "Logos"],
-    [3, "Identités visuelles"],
+    [3, "Publicité"],
   ] as const) {
     await expect(page.locator(".product-card h2")).toHaveText(title);
     if (index < 3)
@@ -122,13 +123,31 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   }
   await page.getByRole("button", { name: "Produit précédent" }).click();
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(".product-card h2")).toHaveText("Identités visuelles");
+  await expect(page.locator(".product-card h2")).toHaveText("Publicité");
   await page.getByRole("button", { name: "Sélectionner ce produit" }).click();
   await expect(page.getByRole("button", { name: "Produit sélectionné" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
   await shot(page, "catalogue-desktop", true);
+});
+test("Publicité : carte, reflets au survol et captures desktop/mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/#/catalogue");
+  await page.getByRole("button", { name: "Afficher Publicité" }).click();
+  await expect(page.locator(".product-card h2")).toHaveText("Publicité");
+  await expect(page.locator(".product-process li")).toHaveCount(5);
+  await expect(page.locator(".product-disclaimer")).toContainText("Ni réalisation FORMA ni affiliation");
+  await page.locator(".product-card").hover({ position: { x: 250, y: 250 } });
+  await page.waitForTimeout(450);
+  expect(await page.locator(".product-card").evaluate((el) => getComputedStyle(el).transform)).not.toBe("none");
+  await shot(page, "carousel-publicite-desktop", true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/#/catalogue");
+  await page.getByRole("button", { name: "Afficher Publicité" }).click();
+  await expect(page.locator(".product-card h2")).toHaveText("Publicité");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await shot(page, "carousel-publicite-mobile", true);
 });
 test("trois types authentiques et formulaire F exact avec photos et conservation", async ({
   page,
@@ -139,9 +158,7 @@ test("trois types authentiques et formulaire F exact avec photos et conservation
   await expect(page.locator(".spec-type-select")).toHaveCount(3);
   for (const image of await page.locator(".spec-type img").all()) {
     await expect(image).toBeVisible();
-    expect(
-      await image.evaluate((e) => (e as HTMLImageElement).naturalWidth),
-    ).toBeGreaterThan(1000);
+    await expect.poll(() => image.evaluate((e) => (e as HTMLImageElement).naturalWidth)).toBeGreaterThan(1000);
   }
   await expect(page.locator(".spec-type .spec-example-source")).toHaveCount(3);
   await shot(page, "choix-site-desktop", true);
@@ -273,13 +290,10 @@ test("espace client original restauré depuis le bundle vérifié", async ({
   await page.mouse.up();
   await expect(root).not.toHaveClass(/dragging-forma-piece/);
   await shot(page, "connexion-desktop");
-  await page.frameLocator(".spec-original-login iframe").getByRole("button", {
-    name: /PAGE D.?ACCUEIL/i,
-  }).click();
-  await expect(page).toHaveURL(/#\/accueil$/);
-  await expect(page.locator(".spec-intro h1")).toHaveText(
-    "Donnez forme à l’impossible",
-  );
+  await expect(client.locator(".client-login__meta")).toBeHidden();
+  await expect(client.locator(".topbar")).toBeHidden();
+  await expect(client.locator(".access-form")).toBeVisible();
+  await expect(page.locator(".spec-header")).toHaveCount(1);
 });
 test("toutes les interfaces, footer identique et captures desktop/mobile", async ({
   page,
@@ -293,7 +307,7 @@ test("toutes les interfaces, footer identique et captures desktop/mobile", async
       "sites",
       "logiciels",
       "logos",
-      "identite",
+      "publicite",
       "choix-site",
       "contact",
       "connexion",
@@ -364,14 +378,14 @@ test("mobile tactile, carrousel et réduction des animations", async ({ browser 
     isMobile: true,
   });
   const page = await context.newPage();
-  await page.goto("http://127.0.0.1:5173/#/connexion");
+  await page.goto("http://127.0.0.1:5174/#/connexion");
   const client = page.frameLocator(".spec-original-login iframe");
   const canvas = client.locator(".client-login__scene canvas");
   await expect(canvas).toBeVisible({ timeout: 20000 });
   await expect(client.locator(".access-form input[type=email]")).toBeAttached();
   await shot(page, "connexion-mobile", true);
 
-  await page.goto("http://127.0.0.1:5173/#/catalogue");
+  await page.goto("http://127.0.0.1:5174/#/catalogue");
   const touch = await context.newCDPSession(page);
   const box = (await page.locator(".product-card").boundingBox())!;
   const x = box.x + box.width * 0.75,
@@ -392,7 +406,7 @@ test("mobile tactile, carrousel et réduction des animations", async ({ browser 
   await page.getByRole("button", { name: "Sélectionner ce produit" }).click();
   await expect(page.getByRole("button", { name: "Produit sélectionné" })).toBeVisible();
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("http://127.0.0.1:5173/#/options");
+  await page.goto("http://127.0.0.1:5174/#/options");
   await expect(page.locator(".is-reduced")).toHaveCount(5);
   await expect(page.getByLabel("Blog et actualités")).toBeEnabled();
   await page.getByLabel("Blog et actualités").check();
@@ -414,7 +428,7 @@ test("contact sans faux envoi et liens publics limités", async ({ page }) => {
   await expect(page.getByRole("alert")).toContainText(
     "Votre message n’a pas été envoyé",
   );
-  await expect(page.locator(".spec-footer a")).toHaveCount(8);
+  await expect(page.locator(".spec-footer a")).toHaveCount(6);
   for (const route of ["client", "realisations", "tarifs", "faq", "reseaux"]) {
     await page.goto("/#/" + route);
     await expect(page.locator(".spec-intro")).toBeVisible();
