@@ -15,7 +15,7 @@ async function shot(
 ) {
   await page.waitForTimeout(350);
   await page.screenshot({
-    path: `artifacts/client-spec/${name}.png`,
+    path: `test-results/captures/${name}.png`,
     fullPage,
     animations: "disabled",
   });

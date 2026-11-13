@@ -37,12 +37,6 @@ export default function App() {
     addEventListener("hashchange", change);
     return () => removeEventListener("hashchange", change);
   }, []);
-  if (new URLSearchParams(location.search).get("reference") === "original")
-    return (
-      <div className="spec-reference">
-        <iframe src="/archive/index.html" title="Référence FORMA originale" />
-      </div>
-    );
   return (
     <ProjectProvider>
       <div className="spec">

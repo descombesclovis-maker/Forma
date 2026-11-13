@@ -61,16 +61,6 @@ export function Home() {
     function install() {
       const doc = frame.current?.contentDocument;
       if (!doc?.querySelector(".build-section")) return false;
-      if (!doc.getElementById("forma-client-view")) {
-        const style = doc.createElement("style");
-        style.id = "forma-client-view";
-        style.textContent =
-          ".topbar,.build-overlay,.custom-cursor,.cursor,.cursor-dot,.cursor-ring,.intro,.intro-screen,.intro-loader{visibility:hidden!important;pointer-events:none!important}body{cursor:auto!important}html{scroll-behavior:auto!important}";
-        doc.head.append(style);
-        doc
-          .querySelectorAll("a,button,input,[tabindex]")
-          .forEach((el) => el.setAttribute("tabindex", "-1"));
-      }
       if (!doc.querySelector(".main--ready canvas")) return false;
       installed = true;
       if (alive) setReady(true);
@@ -124,7 +114,7 @@ export function Home() {
         <div className="spec-build-sticky">
           <iframe
             ref={frame}
-            src="/archive/index.html"
+            src="/scene/index.html"
             title="Grand F original de FORMA"
             className="spec-build-frame"
             tabIndex={-1}

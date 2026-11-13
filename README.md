@@ -1,26 +1,40 @@
-# FORMA — interface selon le cahier des charges client
+# FORMA
 
-Branche : `feature/forma-client-spec`. L’état précédent est conservé sur `backup/forma-premium-20261113`.
+Interface React / TypeScript / Vite. Une seule version : `main`.
+
+## Exécuter
 
 ```sh
 npm ci
-npm run dev -- --host 0.0.0.0
+npm run dev
 npm run build
-npm run test:archive
-npm run test:visual-fidelity
+npm run preview
+```
+
+## Vérifier
+
+```sh
+npx playwright install chromium
 npm test
 ```
 
-- Accueil : `/` ; catalogue : `/#/catalogue`.
-- Navigation : Sites web, Logiciels, Logos, Identité Visuelle, Contact, Vous connecter.
-- Parcours web : `/#/sites` → `/#/choix-site` → `/#/formulaire` → `/#/options`.
-- Référence immuable : `/?reference=original`.
-- Captures exécutées desktop/mobile : [artifacts/client-spec](artifacts/client-spec).
-- Sources des exemples : [public/examples/SOURCES.md](public/examples/SOURCES.md).
-- Progression et limites : [docs/forma/PROGRESS.md](docs/forma/PROGRESS.md).
+Les tests parcourent l’accueil et son F original, le menu, le catalogue, les trois étapes du formulaire F, les options au défilement, la connexion manipulable et le contact, sur ordinateur et mobile. Ils vérifient les sélections, le clavier, le tactile et la réduction des animations. Les captures réelles sont générées dans `test-results/captures/`, exclu de Git.
 
-Le grand F est exécuté depuis son moteur compilé d’origine, pas reconstruit. Ses fichiers dans `public/archive`, `public/assets` et `reference-original` restent intacts. Un adaptateur de vue masque les anciens textes et synchronise le scroll de la scène dans l’accueil actuel, sans changer l’archive consultable.
+## Fichiers conservés
 
-Les données du projet, les photos et les sélections sont conservées en mémoire pendant la navigation. Aucun transfert, authentification réelle ou paiement n’est mis en place. L’intérieur de l’espace client est absent de l’interface publique. Les anciens modules restent dans l’historique et la sauvegarde ; ils ne sont pas importés par l’application active.
+- `src/` : l’interface actuelle, sa navigation et ses styles.
+- `public/scene/` : le moteur compilé de la scène 3D originale et son adaptateur minimal. Géométrie, matières, éclairage, caméra et assemblage sont conservés. Aucune ancienne page n’y est montée.
+- `public/examples/`, `public/portfolio/` : uniquement les visuels utilisés et leurs attributions/licences.
+- `tests/` et fichiers de configuration : compilation, contrôle des parcours et déploiement.
 
-Les tests utilisent Chromium à `/usr/bin/chromium` ; adapter `playwright.config.ts` pour une autre machine. `npm run build` produit le site statique dans `dist`. Aucun déploiement de production n’est effectué.
+Le moteur `engine.js` provient du bundle original `index-kVG0ynuN.js` : sa partie jusqu’à la fonction `cA` a été conservée à l’identique, puis les anciennes interfaces ont été retirées. `scene.js` expose seulement le grand F avec le même pilotage ScrollTrigger ; `src/identity.css` conserve les règles originales du petit logo et de la typographie.
+
+## Déploiement
+
+Le projet Vercel existant est `forma-publier-maintenant`. `vercel.json` définit Vite, `npm ci`, `npm run build` et le répertoire `dist`. Le dépôt est relié à Vercel : publier `main` déclenche le déploiement de production sur l’hébergement existant.
+
+Les routes publiques utilisent des fragments `/#/…`. Aucun secret n’est nécessaire pour compiler cette interface.
+
+## Connexions restant à réaliser
+
+La connexion et le formulaire de contact affichent honnêtement l’absence de service. Aucune authentification, transmission de message ou transaction n’est simulée. Le projet et ses photos sont conservés en mémoire pendant la navigation ; le rechargement les efface. Les informations juridiques et les capacités des logiciels restent à valider.
