@@ -41,3 +41,18 @@ Le footer conserve l'accès à `/tarification`, `/politique-confidentialite` et 
 Le travail graphique est présent mais le projet **n'est pas prêt pour une publication commerciale sans configuration** : service d'envoi inexistant, données légales manquantes, grille des prix non approuvée, référence portfolio à remplacer progressivement par des réalisations autorisées. Voir `docs/PRE_LANCEMENT.md` pour la feuille de route.
 
 Aucune modification de production ni activation de paiement n'est comprise dans cette branche.
+
+## Finitions et démonstrations (novembre 2026)
+
+Branche `forma/finitions-responsive-20261113` :
+- Icône F totalement à gauche du header, mot FORMA® centré.
+- `src/content/commentCaMarche.ts` : étapes Maquette, Échange, Création et Livraison, dépliées **uniquement** lorsque leur ligne traverse le milieu de l'écran. Retour au texte masqué quand le scroll continue.
+- `src/client-spec/Login.tsx` : iframe du portail historique ajustée à sa hauteur réelle, sans scrollbar intérieure.
+- `src/client-spec/PricingStudio.tsx` et `src/config/pricing.ts` : estimateur totalement refait, prestations avec fonctionnalités incluses et options facturées une seule fois. Les montants sont des **brouillons indicatifs**.
+- `src/client-spec/Demos.tsx` : huit projets fictifs à ouvrir depuis le portfolio; sites AUBE/HALO, logiciels interactifs ATLAS/ORBIT, deux logos vectoriels originaux et deux campagnes publicitaires conceptuelles. HALO accepte des produits dans un panier de démo sans commande; ATLAS propose des filtres interactifs; ORBIT joue une courte démonstration synthétisée localement.
+- `src/content/services.ts` : trente services avec miniatures dédiées, liens vers références externes et démonstrations internes lorsqu'elles existent.
+- `.github/workflows/forma-quality.yml` : compilation de production et tests Playwright desktop/mobile sur chaque push de cette branche, avec captures en artifact GitHub Actions.
+
+**Attention aux références :** les créations sont originales mais fictives. Aucun site, logo, logiciel ou visuel n'est présenté comme un travail commandé par une marque réelle. Les références tierces sont des liens de découverte, non des partenariats.
+
+**Avant de commercialiser :** configurer et tester le service de contact, compléter les mentions légales et la confidentialité, valider les tarifs et délais, obtenir les informations d'édition et les droits de présentation. La mention « Créations sans IA » a été remplacée par « Créations sur mesure » puisque cette vitrine contient des éléments conçus avec assistance IA.

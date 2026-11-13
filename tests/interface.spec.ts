@@ -171,3 +171,18 @@ test("mobile layouts, portfolio, pricing and form avoid horizontal overflow", as
     if(path==="/nos-services")await capture(page,"finition-services-mobile");
   }
 });
+
+test("small phones, tablets and widescreen desktop keep one document width and usable primary actions", async ({ page }) => {
+  for(const width of [320,360,393,768,1024,1920]){
+    await page.setViewportSize({width,height:width<=393?844:960});
+    for(const route of ["/","/tarification","/comment-ca-marche","/nos-services","/nous-contacter","/espace-client"]){
+      await page.goto(route);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `overflow on ${route} at ${width}px`).toBe(true);
+      await expect(page.getByRole("button",{name:"Ouvrir le menu"})).toBeVisible();
+      if(route==="/espace-client"){
+        const portal=page.frameLocator("iframe[title^='Espace client original']");
+        await expect(portal.locator(".access-form input[type=email]")).toBeVisible();
+      }
+    }
+  }
+});
