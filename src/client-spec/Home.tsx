@@ -78,7 +78,7 @@ export function Home() {
         <span className="spec-scroll-guide" aria-hidden="true"><i /><i /><i /></span>
         <ul className="spec-assurances" aria-label="Nos engagements">
           <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.2 2" /></svg><span><b>01</b><strong>Livraison en 3 à 7 jours</strong></span></li>
-          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 12h5M8 15h7" /><path d="m4 20 16-16" /></svg><span><b>02</b><strong>Créations sans IA</strong></span></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM8 9h8M8 12h5M8 15h7" /><path d="m4 20 16-16" /></svg><span><b>02</b><strong>Créations sur mesure</strong></span></li>
           <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18.5v-1.2A3.3 3.3 0 0 1 7.3 14h2.4a3.3 3.3 0 0 1 3.3 3.3v1.2M8.5 10.8a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2ZM16 5.2a3 3 0 0 1 0 5.8M16.2 14h.5a3.3 3.3 0 0 1 3.3 3.3v1.2" /></svg><span><b>03</b><strong>Accompagnement client</strong></span></li>
         </ul>
         <div className="spec-scroll-cue" aria-label="Scrollez pour voir la suite"><span>Scrollez pour voir la suite</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v15m-6-6 6 6 6-6" /></svg></div>
