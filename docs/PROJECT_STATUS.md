@@ -20,3 +20,4 @@ Ne jamais marquer une tâche comme terminée si le code n'est pas implémenté e
 
 ## Mission premium — 13 novembre 2026
 Branche dédiée `feature/forma-premium-interface`. Voir `docs/forma/PROGRESS.md` pour la progression vérifiée. Tests d'archive et garde-fous visuels exécutés avec succès ; référence observée dans Chromium.
+Catalogue et parcours frontend implémentés ; trois scénarios Chromium ciblés validés, build réussi. Les connexions externes restent absentes et explicitement signalées. Détails et limites dans docs/forma/PROGRESS.md et INTEGRATIONS.md.
