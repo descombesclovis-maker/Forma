@@ -1,9 +1,9 @@
 export type PricingOption = { id: string; label: string; price: number; recurring?: { amount: number; period: string }; quantity?: { unit: string; max: number } };
-export type PricingProduct = { id: string; label: string; base: number; options: PricingOption[] };
+export type PricingProduct = { id: string; label: string; base: number; options: PricingOption[]; included?: string[] };
 export type PricingCategory = { id: string; label: string; products: PricingProduct[]; complexity: PricingOption[] };
 
 /** Draft, indicative starting prices in EUR, to review and validate before public commercial use. */
-export const pricing: PricingCategory[] = [
+const basePricing: PricingCategory[] = [
   { id: "web", label: "Sites web", complexity: [{ id: "web-function", label: "Fonctionnalité complémentaire", price: 90 }, { id: "web-advanced", label: "Périmètre technique avancé", price: 190 }], products: [
     { id: "landing", label: "Landing page", base: 290, options: [{ id: "form", label: "Formulaire de contact", price: 60 }, { id: "motion", label: "Animations avancées", price: 120 }, { id: "copy", label: "Aide à la rédaction", price: 90 }, { id: "maintenance", label: "Maintenance mensuelle", price: 25, recurring: { amount: 25, period: "mois" } }] },
     { id: "vitrine-simple", label: "Site vitrine simple", base: 490, options: [{ id: "pages", label: "Pages supplémentaires", price: 55, quantity: { unit: "page", max: 12 } }, { id: "form", label: "Formulaire de contact", price: 60 }, { id: "motion", label: "Animations avancées", price: 140 }, { id: "maintenance", label: "Maintenance mensuelle", price: 25, recurring: { amount: 25, period: "mois" } }] },
@@ -42,3 +42,52 @@ export const pricing: PricingCategory[] = [
 ];
 
 export const formatEUR = (amount: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
+
+/**
+ * Options bundled into each product type are included in the starting price;
+ * they cannot be charged again as extras. Edit these entries when the
+ * commercial scope changes. Base prices remain draft estimates, not quotes.
+ */
+const bundles: Record<string, { included: string[]; remove?: string[]; replace?: Record<string, { label: string; price: number }> }> = {
+  landing: { included: ["Une page responsive", "Mise en page personnalisée", "Bouton d'appel à l'action", "Mise en ligne initiale"] },
+  "vitrine-simple": { included: ["Jusqu'à 3 pages responsives", "Formulaire de contact standard", "Navigation et pied de page", "Optimisation SEO de base"], remove: ["form"] },
+  "vitrine-multipage": { included: ["Jusqu'à 6 pages responsives", "Formulaire de contact standard", "Menu et navigation multipages", "Optimisation SEO de base"], replace: { form: { label: "Formulaire avancé avec traitement serveur", price: 120 } } },
+  ecommerce: { included: ["Jusqu'à 10 fiches produits", "Catalogue, panier et passage en caisse", "Paramétrage initial d'un paiement standard", "Interface responsive"] },
+  reservation: { included: ["Calendrier et créneaux de réservation standards", "Formulaire de réservation", "Gestion simple des demandes", "Interface responsive"], replace: { calendar: { label: "Synchronisation calendrier externe", price: 140 } } },
+  "sur-mesure": { included: ["Étude du périmètre", "Conception personnalisée", "Version responsive", "Mise en ligne initiale"] },
+  refonte: { included: ["Audit visuel rapide", "Nouvelle direction UI", "Reprise de la structure existante", "Compatibilité mobile"] },
+  "web-app": { included: ["Interface responsive", "Jusqu'à 4 écrans", "Navigation et états UI"], },
+  "mobile-app": { included: ["Interface mobile", "Jusqu'à 5 écrans", "Navigation adaptée au tactile"] },
+  "desktop-app": { included: ["Application de bureau", "Jusqu'à 5 vues", "Navigation et packaging standard"] },
+  dashboard: { included: ["Tableau de bord de base", "Visualisation d'indicateurs", "Jusqu'à 4 vues"] },
+  "business-app": { included: ["Cadrage du processus métier", "Jusqu'à 5 vues", "Gestion des états d'interface"] },
+  prototype: { included: ["Maquette interactive", "Jusqu'à 5 écrans", "Parcours principal cliquable"] },
+  "ai-app": { included: ["Interface applicative", "Parcours de démonstration", "Design responsive"], },
+  minimal: { included: ["Une proposition vectorielle", "Version couleur + monochrome", "Fichiers PNG et SVG"], remove: ["source"] },
+  wordmark: { included: ["Logotype vectoriel", "Version couleur + monochrome", "Fichiers PNG et SVG"], remove: ["source"] },
+  illustrated: { included: ["Illustration originale", "Déclinaison monochrome", "Fichiers PNG et SVG"], remove: ["source"] },
+  "3d": { included: ["Logo 3D fixe", "Deux angles d'export", "Images PNG haute résolution"] },
+  redesign: { included: ["Analyse de l'ancien logo", "Proposition remaniée", "Fichiers PNG et SVG"], remove: ["source"] },
+  "logo-pack": { included: ["Logo vectoriel principal", "Trois déclinaisons", "Fichiers sources SVG", "Exports numériques"], remove: ["source"] },
+  poster: { included: ["Une affiche finalisée", "Un format principal", "Export pour diffusion"] },
+  social: { included: ["Un visuel social finalisé", "Une version principale", "Export web"] },
+  banner: { included: ["Une bannière finalisée", "Un format principal", "Export web"] },
+  "short-video": { included: ["Un format court", "Montage simple", "Export pour diffusion"] },
+  "promo-video": { included: ["Une vidéo de présentation", "Montage standard", "Export final"] },
+  animation: { included: ["Animation graphique courte", "Un format principal", "Export vidéo"] },
+  "ad-pack": { included: ["Pack initial de trois visuels", "Formats web standards", "Fichiers finaux"] },
+};
+
+export const pricing: PricingCategory[] = basePricing.map((category) => ({
+  ...category,
+  products: category.products.map((product) => {
+    const bundle = bundles[product.id];
+    return {
+      ...product,
+      included: bundle?.included ?? ["Conception et export du produit de base"],
+      options: product.options
+        .filter((option) => !bundle?.remove?.includes(option.id))
+        .map((option) => ({ ...option, ...(bundle?.replace?.[option.id] ?? {}) })),
+    };
+  }),
+}));
