@@ -24,3 +24,4 @@ Catalogue et parcours frontend implémentés ; trois scénarios Chromium ciblés
 
 ## Cahier des charges client strict — mission suivante
 État sauvegardé sur backup/forma-premium-20261113. Travail sur feature/forma-client-spec. Header, accueil et footer remplacés conformément à la nouvelle structure ; ressources originales intactes, vérification desktop et build réussis. Voir docs/forma/PROGRESS.md.
+Catalogue à quatre catégories et parcours type → trois questions dans le F → barres d’options au scroll implémentés. Connexion uniquement avec volumes manipulables. Huit tests Chromium réussis ensemble, build et conservation réussis. Captures réelles : artifacts/client-spec/README.md. Authentification, envoi Contact et contenus juridiques/logiciels restent à connecter ou valider. Aucun intérieur client public, aucune action Vercel.

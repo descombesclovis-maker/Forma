@@ -1,24 +1,26 @@
-# Services restant à connecter
+# Périmètre actuel — cahier des charges client
 
-## Demandes et commandes
-- API de transmission et stockage des demandes, validation serveur, protection antispam et notifications.
-- Traitement des commandes et tarification des options : aucun montant d’option inventé. Le total final reste sur devis.
-- Paiement, acomptes et facturation à sélectionner et intégrer ultérieurement.
+L’interface active contient uniquement l’accueil, le catalogue à quatre catégories, Sites web, Logiciels, Logos, Identité Visuelle, le parcours web (type, formulaire F, options), Contact, la connexion, la confidentialité et les termes légaux. Les anciens tableaux de bord, commandes et autres rubriques ne sont pas accessibles depuis l’interface active.
 
-## Espace client
-- Authentification serveur, récupération de compte, autorisations par projet.
-- Projets, progression, échanges, documents, devis, factures et historique : interfaces vides, sans données commerciales fictives.
-- Aucun mot de passe, compte ou paiement n’est traité par cet aperçu.
+## Fonctionnel côté navigateur
+- Navigation commune et footer identique.
+- Original F 3D exécuté depuis son bundle préservé ; défilement synchronisé par Home.tsx.
+- Trois questions exactes, validation du nom, photos locales facultatives, informations facultatives.
+- Données conservées en mémoire entre les pages, sans transfert ni stockage persistant.
+- Options sélectionnables entre des barres animées au scroll ; mode clavier et réduction de mouvement.
+- Volumes de connexion en 3D CSS à six faces, drag souris/tactile et touches fléchées.
 
-## Contenus à valider
-- LocalAiStudio, LocalAiWeb et LocalAiVision : capacités réelles, disponibilité, licences, compatibilités et médias à fournir.
-- Mentions légales, conditions commerciales, régime fiscal, politique de confidentialité et coordonnées de l’entreprise.
-- Les nouvelles démonstrations sont des études visuelles fictives ; les ressources historiques ne sont pas réinterprétées comme des preuves clients.
+## Non connecté / non fourni
+- Authentification réelle et transmission du formulaire de contact.
+- Capacités, licences et compatibilités des logiciels LocalAi à valider.
+- Données juridiques de l’entreprise, politique complète de confidentialité et conditions à fournir.
+- Les prix des options n’ont pas été inventés : elles sont indiquées sur devis.
+- Aucun intérieur d’espace client n’est développé dans cette mission.
 
-## Technique et déploiement
-- `npm ci`, `npm run dev` ; accueil `/`, référence inchangée `/?reference=original`, navigation éditable `/#/univers`.
-- `npm run build` génère `dist` ; Vite statique, sans variable secrète nécessaire. Les routes utilisent le hash : pas de réécriture serveur requise.
-- `npm test` utilise Chromium installé dans cet environnement. Adapter executablePath dans playwright.config.ts pour les autres machines.
-- Aucun déploiement ni changement de configuration Vercel effectué.
-- Fonts Google chargées par la feuille historique. Hébergement local des polices et examen du consentement à prévoir avant ouverture commerciale.
-- Le F reste un composant exécuté du bundle archivé : ses sources React/Three ne sont pas disponibles. Les réglages adaptatifs et l’accessibilité du moteur historique restent à approfondir sans modifier la référence.
+## Préservation et livraison
+- Sauvegarde précédente : backup/forma-premium-20261113.
+- Branche de travail : feature/forma-client-spec.
+- Archive de référence : /?reference=original ; fichiers originaux inchangés.
+- Captures réelles et comparables : artifacts/client-spec ; sources des exemples : public/examples/SOURCES.md.
+- npm run dev, npm run build, npm test, npm run test:archive, npm run test:visual-fidelity.
+- Aucun déploiement, promotion ou changement Vercel exécuté.

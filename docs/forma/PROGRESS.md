@@ -36,3 +36,22 @@
 - Footer commun : structure noire, Forma®, confidentialité, six destinations et termes légaux, sans slogan.
 - Vérification Chromium desktop : centrage 720/1440, six entrées exactes, opacité F=1 lors du scroll ; captures exécutées dans artifacts/client-spec/. Build et conservation des 12 ressources : réussis.
 - Suite : catalogue et exemples authentiques, type de site, formulaire F à trois questions, options au scroll et connexion manipulable.
+
+## Catalogue, parcours et connexion — nouveau périmètre strict
+- Catalogue : quatre catégories exactes ; captures authentiques TodoMVC, Bootstrap, Excalidraw et Medusa, sources cliquables et notices de licences dans public/examples. Les illustrations de marque restent les ressources FORMA historiques.
+- Type de site : trois choix exacts, images réelles et attribution en bas à droite ; les six tarifs validés restent présentés dans Sites web.
+- Formulaire : nom obligatoire, photos facultatives et informations complémentaires facultatives ; les champs sont dans les segments du F, les réponses sont modifiables, photos et réponses conservées en mémoire entre les pages. Aucun champ supplémentaire.
+- Options : cinq familles de fonctionnalités de sites, 20 sélections sur devis. Deux barres brillantes s’écartent puis se referment au scroll, avant la catégorie suivante. Conservation des sélections ; ouverture au clavier et affichage stable en réduction de mouvement.
+- Connexion : email et mot de passe uniquement, trois volumes en lévitation, glisser à la souris/tactile, flèches au clavier ; retour à la lévitation. Aucun intérieur client ni compte fictif.
+- Contact et pages obligatoires confidentialité/termes : contenus minimaux, absence de transmission explicitement indiquée. Informations juridiques non inventées.
+- Anciennes rubriques non importées et absentes des menus/routes publics : réseaux, portfolio, tarifs globaux, FAQ, méthode, à propos, comparateur, compte et tableaux de bord.
+- Validation intermédiaire : 6 scénarios sur 7 réussis, puis correction du démarrage de la scène originale et test accueil ciblé réussi. Suite complète relancée après correction.
+
+## Résultat vérifié — livraison du cahier des charges
+- Build TypeScript/Vite réussi ; archive : 12 fichiers identiques ; garde-fous de fidélité réussis.
+- Suite complète : **8 scénarios Chromium réussis ensemble**, 55,3 secondes. Desktop, mobile, souris, clavier et geste tactile natif via le protocole Chromium. Aucun appareil physique ni Safari revendiqué.
+- Vérifiés : centrage, six entrées du menu, huit liens exacts du footer, séquence F et retour, CTA/catalogue, trois types/images, trois questions/photo/modification/conservation, ouverture et fermeture des barres, sélections persistantes, drag et lévitation, réduction du mouvement, absence de faux succès et des anciennes pages/dashboard.
+- Après remplacement du visuel abstrait Identité Visuelle par une vraie page du manuel NASA et des flèches d’attribution par SVG : build réussi ; parcours formulaire et revue des interfaces desktop/mobile relancés.
+- Captures réelles : index artifacts/client-spec/README.md ; exemples et licences : public/examples/SOURCES.md. Les exemples ne sont pas des réalisations clients FORMA.
+- Incomplet par absence de services/données : authentification réelle, envoi Contact, fiches techniques définitives des logiciels, mentions juridiques validées. Aucun intérieur client développé.
+- Aucun fichier historique modifié, aucune action de déploiement ou mutation Vercel.

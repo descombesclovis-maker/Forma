@@ -1,0 +1,12 @@
+# Exemples authentiques capturés pour FORMA
+
+Les PNG sont des captures réelles des pages ci-dessous, effectuées avec Chromium le 13 novembre 2026 (1440 × 1000). Ce ne sont ni des créations FORMA ni des références clients. Les marques restent celles de leurs titulaires et ne suggèrent aucune affiliation. Les captures servent uniquement à illustrer le format et l’interface des exemples cités ; elles ne sont pas proposées comme modèles à revendre.
+
+- **onepage.png** : https://todomvc.com/ — page unique de présentation de TodoMVC. Source : https://github.com/tastejs/todomvc ; licence MIT (TODOMVC-LICENSE.txt).
+- **vitrine.png** : https://getbootstrap.com/ — page d’accueil et présentation du projet Bootstrap, exemple de vitrine. Code MIT (BOOTSTRAP-LICENSE.txt) ; documentation CC BY 3.0 : https://getbootstrap.com/docs/5.3/about/license/ et https://creativecommons.org/licenses/by/3.0/. Capture non retouchée.
+- **ecommerce.png** : https://next.medusajs.com/ — boutique de démonstration officielle Medusa, capturée après défilement jusqu’à la section des produits. Code MIT : https://github.com/medusajs/nextjs-starter-medusa (MEDUSA-LICENSE.txt). Les marques et photos de produits visibles restent attribuées à leurs titulaires ; pas de réutilisation isolée des photos ni de revente du visuel.
+- **logiciel.png** : https://excalidraw.com/ — capture réelle de l’interface du logiciel Excalidraw avec un F dessiné dans l’application, sous licence MIT : https://github.com/excalidraw/excalidraw (EXCALIDRAW-LICENSE.txt). Cette image illustre le type « logiciel » ; elle ne représente aucune fonctionnalité de LocalAiStudio, LocalAiWeb ou LocalAiVision.
+- **identity.png** : page 8 (section 1.4) du manuel officiel NASA Graphics Standards Manual, janvier 1976 : https://www.nasa.gov/wp-content/uploads/2015/01/nasa_graphics_manual_nhb_1430-2_jan_1976.pdf . Page convertie sans retouche via pdftoppm ; cadrage responsive dans le site. Document gouvernemental américain présenté comme exemple de charte, avec attribution et lien ; aucun partenariat ni réalisation FORMA suggéré. Guide d’utilisation des médias NASA : https://www.nasa.gov/nasa-brand-center/images-and-media/ . Les signes NASA restent soumis aux règles d’usage des marques, ils ne sont pas utilisés comme marque FORMA.
+- L’exemple Logos vient de la ressource historique FORMA `public/portfolio/identity-forma.svg`. Il n’est pas présenté comme une commande client.
+
+La capture de demo.vercel.store a été rejetée : page 404. Elle n’est pas utilisée. VERCEL-LICENSE.txt retiré avec cette référence.

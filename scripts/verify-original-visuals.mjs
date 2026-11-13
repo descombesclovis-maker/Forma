@@ -11,7 +11,7 @@ const updated=load('public/assets/forma-catalogue-v1.js');
 const css=load('public/assets/index-CQUtWEvu.css');
 const reference=load('public/archive/index.html');
 const catalogue=load('public/forma-catalogue/index.html');
-const app=load('src/App.tsx')+load('src/Archive.tsx');
+const app=load('src/App.tsx')+load('src/client-spec/Home.tsx');
 const gitBlobHash=(content)=>{ const normalized=content.replace(/\r\n/g,'\n'); return createHash('sha1').update(`blob ${Buffer.byteLength(normalized,'utf8')}\0`).update(normalized,'utf8').digest('hex'); };
 const check=(ok,message)=>{ assert.ok(ok,message); console.log('✓ '+message); };
 assert.equal(gitBlobHash(original),'d57f7970c65065ae7a283c27d04e41ea50d12190','Archive JS du vrai FORMA modifiée');
@@ -26,7 +26,7 @@ for(const piece of ['stem','top','mid']){
   const selector='.forma-logo--mini.forma-logo--interactive:hover .forma-logo__'+piece;
   check(css.includes(selector),'Survol du logo haut gauche : '+piece);
 }
-check(app.includes('forma-catalogue'),'Vitrine mise à jour chargée dans la même interface FORMA');
+check(app.includes('/archive/index.html')&&app.includes('Home'),'Moteur original du F intégré à l’accueil sans modification du bundle');
 for(const label of ['Sites web','Logiciels','Logos','Réseaux','Identités visuelles']){
   check(updated.includes('"label":"'+label+'"'),'Catégorie : '+label);
 }
