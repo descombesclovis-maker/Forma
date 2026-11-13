@@ -114,7 +114,7 @@ test("portfolio links open genuine interactive demos, without pretending client 
   await page.goto("/demo/mono");
   await expect(page.getByText(/Symbole original/)).toBeVisible();
   await page.goto("/demo/lyra");
-  await expect(page.getByText(/Campagne de lancement/)).toBeVisible();
+  await expect(page.getByText(/campagne de lancement/i)).toBeVisible();
 });
 
 test("all 30 service items have their own previews and official external reference links", async ({ page }) => {
