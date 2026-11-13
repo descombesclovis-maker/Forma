@@ -1479,3 +1479,972 @@ button {
 .spec-example img[src$="identity.png"] {
   object-position: center;
 }
+/* Header corrections: keep the validated layout and its existing transitions. */
+.spec-wordmark {
+  display: inline-block;
+  color: inherit;
+  text-decoration: none;
+}
+.spec-wordmark:hover {
+  opacity: 0.72;
+}
+.spec-account {
+  width: 42px;
+  height: 42px;
+  border-radius: 2px;
+  color: #fff;
+  background: #11110f;
+  transition:
+    background 260ms ease,
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms ease;
+}
+.spec-account svg {
+  stroke: #fff;
+  stroke-width: 1.7;
+}
+.spec-account:hover {
+  background: #33332f;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px #0002;
+}
+.spec-account:active {
+  transform: translateY(0) scale(0.96);
+}
+.spec-menu-toggle i {
+  height: 2px;
+}
+
+/* The recovered headline returns; geometry remains secondary and the grid stays subtle. */
+.spec-intro-stage {
+  position: relative;
+  display: block;
+}
+.spec-intro-copy {
+  position: absolute;
+  z-index: 2;
+  top: clamp(75px, 12vh, 120px);
+  left: clamp(26px, 7vw, 112px);
+  max-width: min(900px, 84vw);
+  pointer-events: none;
+}
+.spec-intro-eyebrow {
+  margin: 0 0 22px;
+  color: #6e6e67;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.spec-intro-copy h1 {
+  margin: 0;
+  max-width: 900px;
+  color: #11110f;
+  font-size: clamp(52px, 8vw, 112px);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.075em;
+}
+.spec-orbit {
+  position: absolute;
+  left: 56%;
+  top: 68%;
+  width: min(640px, 74vw);
+  scale: 0.78;
+  transform: translate(-50%, -50%) translateY(calc(var(--intro-progress) * 90px))
+    rotateX(calc(var(--intro-progress) * 9deg))
+    rotateZ(calc(var(--intro-progress) * -5deg));
+  opacity: 0.9;
+}
+.spec-scroll-guide {
+  left: 50%;
+  bottom: 24px;
+}
+.spec-build-cta {
+  color: #fff;
+  background: #11110f;
+  border: 1px solid #11110f;
+  padding: 20px 28px;
+  box-shadow: 0 12px 28px #0002;
+  backdrop-filter: none;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 260ms ease,
+    color 260ms ease,
+    box-shadow 260ms ease;
+}
+.spec-build-cta .spec-arrow {
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.spec-build-cta:before {
+  height: 2px;
+  background: #fff;
+  opacity: 0.6;
+}
+.spec-build-cta:hover {
+  color: #11110f;
+  background: #f4f4ef;
+  box-shadow: 0 16px 34px #0002;
+  transform: translate(-50%, -52%);
+}
+.spec-build-cta:hover .spec-arrow {
+  transform: translateX(4px);
+}
+.spec-build-cta:active {
+  transform: translate(-50%, -49%) scale(0.97);
+}
+.spec-build-frame {
+  scrollbar-width: none;
+}
+.spec-build-frame::-webkit-scrollbar {
+  display: none;
+}
+.spec-original-login {
+  width: 100%;
+  min-height: calc(100svh - 88px);
+  background: #f4f4ef;
+}
+.spec-original-login iframe {
+  display: block;
+  width: 100%;
+  height: max(850px, calc(100svh - 88px));
+  border: 0;
+  background: #f4f4ef;
+}
+
+/* FORMA product carousel — dimensional, accessible, responsive. */
+.spec-carousel-page {
+  max-width: 1600px;
+  min-height: 76vh;
+  margin: auto;
+  padding: clamp(38px, 5vw, 76px) clamp(20px, 5.5vw, 88px) 50px;
+}
+.carousel-heading {
+  width: min(100%, 1180px);
+  margin: 0 auto 28px;
+}
+.carousel-heading .spec-intro-eyebrow {
+  margin-bottom: 14px;
+}
+.carousel-heading h1 {
+  max-width: 940px;
+  margin: 0;
+  font-size: clamp(38px, 5.6vw, 78px);
+  line-height: 0.99;
+  font-weight: 500;
+  letter-spacing: -0.07em;
+}
+.carousel-heading > p:last-child {
+  margin: 16px 0 0;
+  color: #71716b;
+  font-size: 14px;
+}
+.product-carousel {
+  position: relative;
+  width: min(100%, 1240px);
+  margin: auto;
+  padding: 0 66px;
+  touch-action: pan-y;
+  outline: none;
+}
+.product-carousel:focus-visible {
+  outline: 2px solid #687151;
+  outline-offset: 9px;
+}
+.product-card {
+  --card-depth: 0px;
+  min-height: 550px;
+  display: grid;
+  grid-template-columns: 0.88fr 1.12fr;
+  background:
+    linear-gradient(120deg, #fff 0%, #fafaf7 56%, #efefea 100%);
+  border: 1px solid #11110f12;
+  box-shadow:
+    0 36px 70px #17171414,
+    0 8px 20px #1717140a,
+    inset 0 1px #fff;
+  animation: product-arrive 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-style: preserve-3d;
+}
+@keyframes product-arrive {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) translate3d(20px, 8px, -45px) rotateY(-4deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) translate3d(0, 0, 0) rotateY(0);
+  }
+}
+.product-card-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(25px, 3vw, 43px) clamp(22px, 3vw, 46px) 25px;
+}
+.product-card-index {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #72726b;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+.product-card-overline {
+  margin: 37px 0 8px;
+  font-size: 9px;
+  color: #787870;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.product-card-copy h2 {
+  margin: 0;
+  font-size: clamp(42px, 4.4vw, 65px);
+  line-height: 0.98;
+  font-weight: 500;
+  letter-spacing: -0.07em;
+}
+.product-card-description {
+  max-width: 430px;
+  margin: 18px 0 0;
+  color: #5e5e58;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.product-process {
+  width: 100%;
+  margin-top: 26px;
+}
+.product-process h3 {
+  margin: 0 0 8px;
+  color: #73736c;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.product-process ol {
+  list-style: none;
+  display: grid;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+}
+.product-process li {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+  padding: 5px 0;
+  border-bottom: 1px solid #11110f12;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.product-process li span {
+  color: #8b8b82;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+.product-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 23px;
+  min-height: 47px;
+  margin-top: 19px;
+  padding: 0 16px;
+  color: white;
+  background: #11110f;
+  border: 1px solid #11110f;
+  font-size: 11px;
+  transition:
+    transform 220ms ease,
+    color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+.product-select:hover,
+.product-select[aria-pressed="true"] {
+  color: #11110f;
+  background: #f4f4ef;
+  box-shadow: 0 7px 15px #00000012;
+}
+.product-select:active {
+  transform: scale(0.97);
+}
+.product-select .spec-arrow {
+  width: 17px;
+  height: 17px;
+}
+.product-disclaimer {
+  max-width: 330px;
+  margin: 11px 0 0;
+  color: #82827a;
+  font-size: 8px;
+  line-height: 1.45;
+}
+.product-card-visual {
+  min-width: 0;
+  min-height: 460px;
+  display: grid;
+  place-items: center;
+  padding: 35px;
+  perspective: 1300px;
+  background:
+    radial-gradient(ellipse at 56% 47%, #ffffff 0, #fafaf6 38%, #eeeee9 100%);
+  overflow: hidden;
+}
+.product-art {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  height: min(430px, 42vw);
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  animation: art-hover 8s ease-in-out infinite;
+}
+@keyframes art-hover {
+  0%, 100% { transform: translateY(0) rotateX(0.5deg); }
+  50% { transform: translateY(-7px) rotateX(-0.4deg); }
+}
+.art-label {
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  color: #8a8a82;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+/* Tesla-inspired editorial website inside a premium desktop monitor. */
+.product-art--site {
+  perspective: 1100px;
+}
+.device-screen {
+  position: absolute;
+  inset: 7% 5% 17%;
+  overflow: hidden;
+  border: 9px solid #171717;
+  border-bottom-width: 12px;
+  border-radius: 15px 15px 7px 7px;
+  background: #deded9;
+  box-shadow:
+    inset 0 0 0 1px #ffffff55,
+    0 28px 45px #0002,
+    0 5px 10px #0002;
+  transform: rotateY(-7deg) rotateX(2deg);
+}
+.tesla-screen {
+  background:
+    linear-gradient(180deg, #ffffffd9 0%, #ffffff77 13%, transparent 32%),
+    linear-gradient(0deg, #272a2c 0%, #55595a 34%, #b5b8b7 67%, #d8d7d1 100%);
+}
+.tesla-nav {
+  position: absolute;
+  inset: 12px 20px auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #151515;
+  font-size: 8px;
+  letter-spacing: 0.25em;
+}
+.tesla-nav span {
+  margin-right: auto;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+}
+.tesla-nav i {
+  width: 29px;
+  height: 1px;
+  background: #222;
+}
+.tesla-copy {
+  position: absolute;
+  z-index: 1;
+  top: 22%;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #111;
+}
+.tesla-copy span,
+.tesla-copy small {
+  display: block;
+  font-size: 7px;
+  letter-spacing: 0.2em;
+}
+.tesla-copy b {
+  display: block;
+  margin: 3px 0;
+  font-size: clamp(15px, 2vw, 25px);
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+}
+.tesla-copy small {
+  font-size: 6px;
+  letter-spacing: 0.04em;
+}
+.tesla-car {
+  position: absolute;
+  left: 16%;
+  right: 11%;
+  bottom: 17%;
+  height: 28%;
+  border-radius: 60% 48% 24% 18% / 70% 72% 22% 20%;
+  background: linear-gradient(160deg, #e3e4e2 0%, #85898a 34%, #292c2e 78%, #121416 100%);
+  box-shadow: 0 18px 21px #1116, inset 0 2px 4px #fff9;
+  transform: skewX(-8deg);
+}
+.tesla-car::before {
+  content: "";
+  position: absolute;
+  left: 23%;
+  top: -38%;
+  width: 49%;
+  height: 55%;
+  border-radius: 75% 62% 5% 0;
+  background: linear-gradient(130deg, #8e999f 0%, #32383a 52%, #c2c9ca 100%);
+  clip-path: polygon(17% 100%, 35% 5%, 76% 0, 100% 100%);
+  border-bottom: 2px solid #ddd;
+}
+.tesla-car i,
+.tesla-car b {
+  position: absolute;
+  bottom: -10%;
+  width: 18%;
+  aspect-ratio: 1;
+  border: 5px solid #18191a;
+  border-radius: 50%;
+  background: radial-gradient(circle, #aeb3b3 0 18%, #383a3b 20% 48%, #151617 50%);
+}
+.tesla-car i { left: 16%; }
+.tesla-car b { right: 12%; }
+.tesla-car em {
+  position: absolute;
+  right: -2%;
+  top: 55%;
+  width: 10%;
+  height: 4px;
+  background: #fff;
+  box-shadow: 0 0 9px #fff;
+}
+.tesla-actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.tesla-actions span {
+  min-width: 118px;
+  padding: 7px 10px;
+  border: 1px solid #fff9;
+  color: white;
+  background: #111b;
+  text-align: center;
+  font-size: 6px;
+  letter-spacing: 0.12em;
+}
+.tesla-actions span:first-child {
+  color: #111;
+  border-color: #111;
+  background: #f5f5f2;
+}
+.device-stand {
+  position: absolute;
+  bottom: 8%;
+  left: 47%;
+  width: 7%;
+  height: 13%;
+  background: linear-gradient(90deg, #6b6b69, #d3d3cf 45%, #757572);
+  clip-path: polygon(35% 0, 65% 0, 100% 100%, 0 100%);
+}
+.device-foot {
+  position: absolute;
+  bottom: 7%;
+  left: 39%;
+  width: 24%;
+  height: 3%;
+  border-radius: 50% 50% 3px 3px;
+  background: linear-gradient(#b4b4af, #595956);
+  box-shadow: 0 6px 12px #0002;
+}
+/* ChatGPT-inspired workspace composition, clearly labeled as a reference. */
+.product-art--app {
+  max-width: 550px;
+  height: min(420px, 40vw);
+  min-height: 330px;
+}
+.app-window {
+  width: 94%;
+  height: 84%;
+  display: grid;
+  grid-template-columns: 29% 71%;
+  overflow: hidden;
+  border: 1px solid #ffffff;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 28px 55px #0002, 0 3px 8px #0001;
+  transform: rotateY(-5deg) rotateX(2deg);
+}
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 17px 12px;
+  color: #f3f4f2;
+  background: #20211f;
+  font-size: 7px;
+}
+.app-sidebar b {
+  font-size: 16px;
+}
+.app-sidebar span,
+.app-sidebar i {
+  padding: 7px 5px;
+  border-radius: 5px;
+  font-style: normal;
+  background: #ffffff0d;
+}
+.app-sidebar i { background: none; }
+.app-sidebar small {
+  color: #a1a29e;
+  font-size: 6px;
+  letter-spacing: 0.14em;
+}
+.app-sidebar hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #fff2;
+}
+.app-main {
+  position: relative;
+  color: #262722;
+  background: linear-gradient(145deg, #fff, #f9faf8);
+}
+.app-main header {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 19px;
+  border-bottom: 1px solid #0000000b;
+  font-size: 8px;
+}
+.chat-content {
+  width: 82%;
+  margin: 23px auto 0;
+}
+.chat-content > small {
+  color: #888981;
+  font-size: 6px;
+  letter-spacing: 0.16em;
+}
+.chat-content h3 {
+  margin: 8px 0;
+  font-size: clamp(15px, 2.1vw, 24px);
+  line-height: 1.03;
+  font-weight: 500;
+  letter-spacing: -0.06em;
+}
+.chat-content p,
+.assistant-reply span {
+  color: #74766f;
+  font-size: 7px;
+  line-height: 1.5;
+}
+.assistant-reply {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 10px;
+  border: 1px solid #e8e9e6;
+  border-radius: 8px;
+  font-size: 7px;
+}
+.assistant-reply b { font-size: 7px; }
+.prompt-box {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 9%;
+  display: flex;
+  justify-content: space-between;
+  padding: 11px 12px;
+  border: 1px solid #e3e4e1;
+  border-radius: 10px;
+  color: #83847d;
+  font-size: 7px;
+}
+.prompt-box i {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  background: #252622;
+  border-radius: 50%;
+  font-style: normal;
+}
+/* Nike-inspired symbol study with typography and a clean white field. */
+.product-art--logo {
+  max-width: 550px;
+  height: min(420px, 40vw);
+  min-height: 330px;
+}
+.logo-sheet {
+  position: relative;
+  width: 82%;
+  height: 83%;
+  padding: 22px 25px;
+  background: #fff;
+  box-shadow: 0 25px 50px #0002, 0 1px 3px #0001;
+  transform: rotateY(5deg) rotateX(2deg);
+}
+.logo-sheet > small {
+  color: #898981;
+  font-size: 7px;
+  letter-spacing: 0.17em;
+}
+.nike-word {
+  position: absolute;
+  top: 22%;
+  left: 12%;
+  color: #111;
+  font-size: clamp(30px, 5vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  transform: skewX(-9deg);
+}
+.nike-mark {
+  position: absolute;
+  left: 17%;
+  top: 42%;
+  width: 65%;
+  height: 35%;
+  overflow: visible;
+  filter: drop-shadow(0 8px 4px #00000015);
+}
+.nike-mark path { fill: #111; stroke: none; }
+.logo-caption {
+  position: absolute;
+  left: 25px;
+  right: 25px;
+  bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  color: #6d6d67;
+  font-size: 7px;
+  letter-spacing: 0.12em;
+}
+.logo-caption i { font-style: normal; }
+/* McDonald’s-inspired identity system, shown across several applications. */
+.product-art--identity {
+  max-width: 610px;
+  height: min(430px, 42vw);
+  min-height: 340px;
+}
+.identity-board {
+  position: relative;
+  width: 88%;
+  height: 86%;
+  transform: rotateY(-5deg) rotateX(2deg);
+}
+.identity-board > div {
+  position: absolute;
+  box-shadow: 0 18px 34px #0002;
+}
+.identity-sign {
+  top: 1%;
+  left: 5%;
+  width: 40%;
+  height: 40%;
+  display: grid;
+  place-items: center;
+  background: #dc1426;
+  color: #ffbf00;
+}
+.identity-sign svg {
+  width: 47%;
+  height: 58%;
+}
+.identity-sign svg path { fill: currentColor; stroke: none; }
+.identity-sign small {
+  position: absolute;
+  bottom: 9px;
+  left: 10px;
+  font-size: 6px;
+  letter-spacing: 0.1em;
+}
+.identity-cup {
+  top: 12%;
+  right: 7%;
+  width: 22%;
+  height: 60%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #efb700;
+  background: linear-gradient(90deg, #d90e20, #f21b2b 48%, #bb101f);
+  clip-path: polygon(5% 0, 95% 0, 82% 100%, 18% 100%);
+}
+.identity-cup b,
+.identity-bag b {
+  font-family: Arial, sans-serif;
+  font-size: clamp(38px, 5vw, 66px);
+  line-height: 1;
+  font-weight: 500;
+}
+.identity-cup i {
+  color: white;
+  font-size: 5px;
+  font-style: normal;
+}
+.identity-bag {
+  left: 8%;
+  bottom: 5%;
+  width: 31%;
+  height: 39%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  color: #e2a900;
+  background: #f4eee1;
+  clip-path: polygon(0 0,100% 0,91% 100%,9% 100%);
+}
+.identity-bag span {
+  color: #37352f;
+  font-size: 6px;
+  letter-spacing: 0.12em;
+}
+.identity-poster {
+  right: 3%;
+  bottom: 5%;
+  width: 36%;
+  height: 39%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 13px;
+  color: #f9c000;
+  background: #171817;
+}
+.identity-poster small,
+.identity-poster i {
+  font-size: 6px;
+  letter-spacing: 0.1em;
+  font-style: normal;
+}
+.identity-poster b {
+  font-size: clamp(12px, 2vw, 21px);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+}
+.identity-swatches {
+  position: absolute;
+  right: 28%;
+  bottom: 3%;
+  display: flex;
+  gap: 5px;
+  box-shadow: none !important;
+}
+.identity-swatches i {
+  width: 17px;
+  height: 17px;
+  border: 1px solid #1112;
+  background: #d7192d;
+}
+.identity-swatches i:nth-child(2) { background: #ffc400; }
+.identity-swatches i:nth-child(3) { background: #f2eee3; }
+.product-nav {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 31% 18%, #ffffff80, transparent 31%),
+    linear-gradient(145deg, #424242 0%, #121212 40%, #020202 74%, #262626 100%);
+  box-shadow:
+    inset 0 1px 2px #ffffffa8,
+    inset 0 -2px 3px #000,
+    0 9px 20px #0003;
+  transform: translateY(-50%);
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms ease,
+    filter 220ms ease;
+}
+.product-nav svg {
+  width: 23px;
+  height: 23px;
+  stroke: #fff;
+  stroke-width: 1.6;
+  filter: drop-shadow(0 1px 1px #000);
+}
+.product-nav:hover {
+  filter: brightness(1.22);
+  box-shadow: inset 0 1px 2px #fff, 0 13px 25px #0004;
+}
+.product-nav--previous:hover { transform: translate(-3px, -50%); }
+.product-nav--next:hover { transform: translate(3px, -50%); }
+.product-nav:active { transform: translateY(-50%) scale(0.91); }
+.product-nav--previous { left: 0; }
+.product-nav--next { right: 0; }
+.carousel-footer {
+  width: min(100%, 1110px);
+  margin: 20px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+.carousel-dots {
+  display: flex;
+  gap: 7px;
+}
+.carousel-dots button {
+  width: 30px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.carousel-dots span {
+  display: block;
+  width: 17px;
+  height: 2px;
+  background: #1113;
+  transition: width 240ms ease, background 240ms ease;
+}
+.carousel-dots button[aria-current="true"] span {
+  width: 29px;
+  background: #111;
+}
+.carousel-footer > p {
+  margin: 0;
+  color: #85857d;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+.carousel-footer > p strong {
+  color: #111;
+  font-weight: 500;
+}
+.carousel-footer > p span { color: #55554f; }
+@media (max-width: 900px) {
+  .product-carousel { padding: 0 50px; }
+  .product-card { min-height: 515px; grid-template-columns: 0.95fr 1.05fr; }
+  .product-card-copy { padding: 27px 24px 22px; }
+  .product-card-visual { padding: 20px; }
+  .product-art { height: 38vw; min-height: 280px; }
+  .product-process li { font-size: 9px; }
+}
+@media (max-width: 700px) {
+  .spec-header-right { gap: 13px; }
+  .spec-account { width: 40px; height: 40px; }
+  .spec-menu-toggle i { height: 2px; }
+  .spec-intro-copy {
+    top: 9vh;
+    left: 23px;
+    max-width: calc(100% - 46px);
+  }
+  .spec-intro-copy h1 {
+    max-width: 540px;
+    font-size: clamp(48px, 13vw, 76px);
+    line-height: 0.98;
+  }
+  .spec-intro-eyebrow { font-size: 8px; margin-bottom: 15px; }
+  .spec-orbit {
+    left: 36%;
+    top: 69%;
+    width: 100%;
+    scale: 0.52;
+  }
+  .spec-scroll-guide { bottom: 17px; }
+  .spec-build-cta {
+    width: max-content;
+    max-width: calc(100% - 32px);
+    padding: 17px 19px;
+    gap: 20px;
+    font-size: 12px;
+  }
+  .spec-original-login iframe { height: max(920px, calc(100svh - 76px)); }
+  .spec-carousel-page { padding: 38px 15px 32px; }
+  .carousel-heading { padding: 0 7px; margin-bottom: 20px; }
+  .carousel-heading h1 { font-size: clamp(37px, 11vw, 58px); }
+  .carousel-heading > p:last-child { font-size: 12px; }
+  .product-carousel { padding: 0 0 60px; }
+  .product-card {
+    display: flex;
+    flex-direction: column-reverse;
+    min-height: 0;
+  }
+  .product-card-visual {
+    min-height: 280px;
+    height: 68vw;
+    max-height: 360px;
+    padding: 13px;
+  }
+  .product-art,
+  .product-art--app,
+  .product-art--logo,
+  .product-art--identity {
+    width: 100%;
+    height: 100%;
+    min-height: 245px;
+  }
+  .product-card-copy { padding: 19px 20px 20px; }
+  .product-card-index { font-size: 8px; }
+  .product-card-overline { margin-top: 22px; font-size: 8px; }
+  .product-card-copy h2 { font-size: 44px; }
+  .product-card-description { font-size: 13px; margin-top: 12px; }
+  .product-process { margin-top: 17px; }
+  .product-process li { font-size: 10px; padding: 5px 0; }
+  .product-select { min-height: 45px; margin-top: 15px; }
+  .product-disclaimer { margin-top: 8px; }
+  .product-nav {
+    width: 43px;
+    height: 43px;
+    top: auto;
+    bottom: 0;
+    transform: none;
+  }
+  .product-nav--previous { left: 0; }
+  .product-nav--next { right: 0; }
+  .product-nav--previous:hover,
+  .product-nav--next:hover,
+  .product-nav:active { transform: scale(0.94); }
+  .carousel-footer { margin-top: 10px; }
+  .carousel-dots { gap: 1px; }
+  .carousel-dots button { width: 26px; }
+  .carousel-footer > p { font-size: 8px; }
+  .app-sidebar { gap: 8px; padding: 12px 7px; }
+  .app-main header { padding: 12px; }
+  .chat-content { margin-top: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spec-orbit,
+  .intro-piece,
+  .product-card,
+  .product-art { animation: none !important; }
+  .spec-build-frame { scroll-behavior: auto; }
+}

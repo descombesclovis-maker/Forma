@@ -90,10 +90,14 @@ export function Home() {
       <section
         className="spec-intro"
         ref={intro}
-        aria-label="Animation géométrique des trois segments de FORMA"
+        aria-label="Accueil FORMA — Donnez forme à l’impossible"
       >
         <div className="spec-intro-stage">
-          <div className="spec-orbit">
+          <div className="spec-intro-copy">
+            <p className="spec-intro-eyebrow">Studio de création numérique</p>
+            <h1>Donnez forme à l’impossible</h1>
+          </div>
+          <div className="spec-orbit" aria-hidden="true">
             <Prism className="intro-piece piece-1" />
             <Prism className="intro-piece piece-2" />
             <Prism className="intro-piece piece-3" />
@@ -129,7 +133,7 @@ export function Home() {
             </p>
           )}
           <a className="spec-build-cta" href={href("catalogue")}>
-            Donner forme à mes idées <Arrow />
+            Démarrer mon projet <Arrow />
           </a>
         </div>
       </section>

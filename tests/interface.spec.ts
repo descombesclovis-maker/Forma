@@ -59,6 +59,13 @@ test("header exact, petit F, centrage, menu et footer", async ({ page }) => {
   await expect(
     page.getByRole("button", { name: "Ouvrir le menu", exact: true }),
   ).toBeFocused();
+  await page.locator(".spec-wordmark").click();
+  await expect(page.locator(".spec-intro h1")).toHaveText(
+    "Donnez forme à l’impossible",
+  );
+  await page.evaluate(() => scrollTo(0, 400));
+  await page.locator(".spec-wordmark").click();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   const footer = page.locator(".spec-footer");
   await expect(footer.locator("a")).toHaveCount(8);
   expect(await footer.innerText()).toBe(
@@ -74,6 +81,9 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".spec-orbit .spec-prism")).toHaveCount(3);
+  await expect(page.locator(".spec-intro h1")).toHaveText(
+    "Donnez forme à l’impossible",
+  );
   await expect(page.locator("main>section")).toHaveCount(2);
   await expect(page.locator(".spec-build")).toHaveAttribute(
     "data-ready",
@@ -94,9 +104,30 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   await page.evaluate(() => scrollTo(0, 0));
   await expect(f.locator(".build-scene-wrap")).toHaveCSS("opacity", "0");
   await page.evaluate(() => scrollTo(0, innerHeight * 1.8));
-  await page.getByRole("link", { name: "Donner forme à mes idées" }).click();
-  await expect(page.locator("main h1")).toHaveText("Produits digitaux");
-  await expect(page.locator(".spec-product")).toHaveCount(4);
+  await page.getByRole("link", { name: "Démarrer mon projet" }).click();
+  await expect(page.locator("main h1")).toHaveText(
+    "Choisissez ce que nous allons créer.",
+  );
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  await expect(page.locator(".carousel-dots button")).toHaveCount(4);
+  for (const [index, title] of [
+    [0, "Sites web"],
+    [1, "Applications"],
+    [2, "Logos"],
+    [3, "Identités visuelles"],
+  ] as const) {
+    await expect(page.locator(".product-card h2")).toHaveText(title);
+    if (index < 3)
+      await page.getByRole("button", { name: "Produit suivant" }).click();
+  }
+  await page.getByRole("button", { name: "Produit précédent" }).click();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator(".product-card h2")).toHaveText("Identités visuelles");
+  await page.getByRole("button", { name: "Sélectionner ce produit" }).click();
+  await expect(page.getByRole("button", { name: "Produit sélectionné" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await shot(page, "catalogue-desktop", true);
 });
 test("trois types authentiques et formulaire F exact avec photos et conservation", async ({
@@ -207,39 +238,48 @@ test("barres : ouverture, fermeture, catégorie suivante et sélections persista
   await page.getByLabel("Blog et actualités").uncheck();
   await expect(page.getByLabel("Blog et actualités")).not.toBeChecked();
 });
-test("connexion : drag souris et clavier, retour à la lévitation, aucun accès simulé", async ({
+test("espace client original restauré depuis le bundle vérifié", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/#/connexion");
-  const shape = page.locator(".drag-shape-1");
-  const box = (await shape.boundingBox())!;
-  await page.mouse.move(box.x + 60, box.y + 40);
+  const client = page.frameLocator(".spec-original-login iframe");
+  await expect(client.locator(".client-login__scene canvas")).toBeVisible({
+    timeout: 20000,
+  });
+  await expect(client.locator(".access-form input[type=email]")).toBeAttached();
+  await expect(client.locator(".access-form input[type=password]")).toBeAttached();
+  await expect(client.locator(".client-login__gravity-label")).toContainText(
+    "DRAG / RELEASE",
+  );
+  const box = (await client.locator(".client-login__scene canvas").boundingBox())!;
+  const root = client.locator("html");
+  let grabbed: { x: number; y: number } | null = null;
+  for (const fx of [0.2, 0.35, 0.5, 0.65, 0.8]) {
+    for (const fy of [0.25, 0.4, 0.55, 0.7]) {
+      const point = { x: box.x + box.width * fx, y: box.y + box.height * fy };
+      await page.mouse.move(point.x, point.y);
+      if (await root.evaluate((el) => (el as HTMLElement).style.cursor) === "grab") {
+        grabbed = point;
+        break;
+      }
+    }
+    if (grabbed) break;
+  }
+  expect(grabbed).not.toBeNull();
   await page.mouse.down();
-  await page.mouse.move(box.x + 145, box.y + 95, { steps: 8 });
-  expect(await shape.evaluate((e) => getComputedStyle(e).transform)).not.toBe(
-    "none",
-  );
-  await expect(shape).toHaveAttribute("data-dragging", "true");
-  await shot(page, "connexion-manipulation-desktop");
+  await page.mouse.move(grabbed!.x + 28, grabbed!.y + 18, { steps: 4 });
+  await expect(root).toHaveClass(/dragging-forma-piece/);
   await page.mouse.up();
-  await expect(shape).toHaveAttribute("data-dragging", "false");
-  await shape.focus();
-  await page.keyboard.press("ArrowRight");
-  expect(await shape.evaluate((e) => e.style.transform)).toContain("20px");
-  await page.keyboard.press("Escape");
-  await page
-    .getByLabel("Adresse email", { exact: true })
-    .fill("test@example.org");
-  await page.getByLabel("Mot de passe").fill("test-not-a-real-password");
-  await page
-    .getByRole("button", { name: "Vous connecter", exact: true })
-    .click();
-  await expect(page.getByRole("alert")).toContainText(
-    "Aucune donnée n’a été transmise",
-  );
+  await expect(root).not.toHaveClass(/dragging-forma-piece/);
   await shot(page, "connexion-desktop");
-  await expect(page.locator("body")).not.toContainText("Dashboard");
+  await page.frameLocator(".spec-original-login iframe").getByRole("button", {
+    name: /PAGE D.?ACCUEIL/i,
+  }).click();
+  await expect(page).toHaveURL(/#\/accueil$/);
+  await expect(page.locator(".spec-intro h1")).toHaveText(
+    "Donnez forme à l’impossible",
+  );
 });
 test("toutes les interfaces, footer identique et captures desktop/mobile", async ({
   page,
@@ -261,7 +301,11 @@ test("toutes les interfaces, footer identique et captures desktop/mobile", async
       "legal",
     ]) {
       await page.goto("/#/" + route);
-      await expect(page.locator("main h1")).toBeVisible();
+      if (route === "connexion") {
+        await expect(page.locator(".spec-original-login iframe")).toBeVisible();
+      } else {
+        await expect(page.locator("main h1")).toBeVisible();
+      }
       const text = await page.locator(".spec-footer").innerText();
       if (!footer) footer = text;
       expect(text).toBe(footer);
@@ -313,7 +357,7 @@ test("toutes les interfaces, footer identique et captures desktop/mobile", async
     }
   }
 });
-test("mobile tactile et réduction des animations", async ({ browser }) => {
+test("mobile tactile, carrousel et réduction des animations", async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     hasTouch: true,
@@ -321,27 +365,32 @@ test("mobile tactile et réduction des animations", async ({ browser }) => {
   });
   const page = await context.newPage();
   await page.goto("http://127.0.0.1:5173/#/connexion");
-  const shape = page.locator(".drag-shape-1");
+  const client = page.frameLocator(".spec-original-login iframe");
+  const canvas = client.locator(".client-login__scene canvas");
+  await expect(canvas).toBeVisible({ timeout: 20000 });
+  await expect(client.locator(".access-form input[type=email]")).toBeAttached();
+  await shot(page, "connexion-mobile", true);
+
+  await page.goto("http://127.0.0.1:5173/#/catalogue");
   const touch = await context.newCDPSession(page);
-  const box = (await shape.boundingBox())!;
-  const x = box.x + 90,
-    y = box.y + 45;
+  const box = (await page.locator(".product-card").boundingBox())!;
+  const x = box.x + box.width * 0.75,
+    y = box.y + box.height * 0.55;
   await touch.send("Input.dispatchTouchEvent", {
     type: "touchStart",
     touchPoints: [{ x, y, id: 1 }],
   });
   await touch.send("Input.dispatchTouchEvent", {
     type: "touchMove",
-    touchPoints: [{ x: x + 50, y: y + 35, id: 1 }],
+    touchPoints: [{ x: x - 110, y: y + 4, id: 1 }],
   });
-  await expect(shape).toHaveAttribute("data-dragging", "true");
-  expect(await shape.evaluate((e) => e.style.transform)).toContain("50px");
-  await shot(page, "connexion-manipulation-mobile");
   await touch.send("Input.dispatchTouchEvent", {
     type: "touchEnd",
     touchPoints: [],
   });
-  await expect(shape).toHaveAttribute("data-dragging", "false");
+  await expect(page.locator(".product-card h2")).toHaveText("Applications");
+  await page.getByRole("button", { name: "Sélectionner ce produit" }).click();
+  await expect(page.getByRole("button", { name: "Produit sélectionné" })).toBeVisible();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("http://127.0.0.1:5173/#/options");
   await expect(page.locator(".is-reduced")).toHaveCount(5);
@@ -369,6 +418,8 @@ test("contact sans faux envoi et liens publics limités", async ({ page }) => {
   for (const route of ["client", "realisations", "tarifs", "faq", "reseaux"]) {
     await page.goto("/#/" + route);
     await expect(page.locator(".spec-intro")).toBeVisible();
-    await expect(page.locator("main h1")).toHaveCount(0);
+    await expect(page.locator("main h1")).toHaveText(
+      "Donnez forme à l’impossible",
+    );
   }
 });

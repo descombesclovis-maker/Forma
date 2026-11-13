@@ -1,7 +1,8 @@
 import { FormaScene, React, JSX, ReactDOM, ScrollTrigger } from './engine.js';
 
-// Only the original scene is mounted. Its geometry, materials, lighting,
-// camera and animation functions remain unchanged inside engine.js.
+// The production FormaScene renderer is preserved. Only its transient background
+// grid layer is omitted at composition; the F, materials, lighting, camera,
+// interactions and scroll-driven motion are unchanged inside engine.js.
 function Scene() {
   const [progress, setProgress] = React.useState(0);
   const section = React.useRef(null);

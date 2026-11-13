@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Header, Footer } from "./client-spec/Chrome";
-import { Catalogue, ProductPage, SiteChoice } from "./client-spec/Catalogue";
+import { ProductPage, SiteChoice } from "./client-spec/Catalogue";
+import { ProductCarousel } from "./client-spec/ProductCarousel";
 import { ProjectProvider } from "./client-spec/ProjectState";
 import { FForm } from "./client-spec/FForm";
 import { Options } from "./client-spec/Options";
@@ -45,7 +46,7 @@ export default function App() {
           {route === "accueil" ? (
             <Home />
           ) : route === "catalogue" ? (
-            <Catalogue />
+            <ProductCarousel />
           ) : ["sites", "logiciels", "logos", "identite"].includes(route) ? (
             <ProductPage id={route} />
           ) : route === "choix-site" ? (

@@ -79,7 +79,19 @@ export function Header({ route }: { route: string }) {
         >
           <Mark />
         </a>
-        <span className="spec-wordmark">Forma®</span>
+        <a
+          className="spec-wordmark"
+          href={href("accueil")}
+          aria-label="FORMA — accueil"
+          onClick={(event) => {
+            if (route === "accueil") {
+              event.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
+          Forma®
+        </a>
         <div className="spec-header-right">
           <a
             className="spec-account"
