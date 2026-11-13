@@ -7,6 +7,7 @@ import { Login } from "./client-spec/Login";
 import { InfoPage } from "./client-spec/InfoPages";
 import { LegalPage } from "./client-spec/Legal";
 import { Projects } from "./client-spec/Projects";
+import { DemoPage, demoSlugs } from "./client-spec/Demos";
 import "./client-spec/vitrine.css";
 import "./client-spec/evolution-2.css";
 import "./client-spec/refonte.css";
@@ -41,6 +42,7 @@ function normalizeAddress() {
     history.replaceState(null, "", "/" + (destinations[legacy] ?? "#accueil"));
   }
   if (location.hash === "#contact" && location.pathname === "/") { window.location.replace("/nous-contacter" + location.search); return; }
+  if (location.pathname.startsWith("/demo/") && demoSlugs.includes(location.pathname.slice(6))) return;
   if (oldPaths.has(location.pathname) || !paths[location.pathname]) history.replaceState(null, "", "/");
 }
 
@@ -54,7 +56,8 @@ export default function App() {
   return <div className="spec">
     <GlobalCursor />
     <Header />
-    {route === "home" ? <main><Home /><Projects /></main>
+    {location.pathname.startsWith("/demo/") && demoSlugs.includes(location.pathname.slice(6)) ? <main><DemoPage slug={location.pathname.slice(6)} /></main>
+      : route === "home" ? <main><Home /><Projects /></main>
       : route === "client" ? <main><Login /></main>
       : route === "contact" ? <main><Contact /></main>
       : route === "privacy" || route === "legal" ? <main><LegalPage page={route} /></main>
