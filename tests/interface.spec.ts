@@ -60,21 +60,22 @@ test("header account access and seven destinations work", async ({ page }) => {
 test("process, pricing and services pages contain requested content and contact CTAs", async ({ page }) => {
   await page.goto("/comment-ca-marche");
   await expect(page.getByRole("heading", { name: "De votre idée à sa réalisation." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Échange" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Livraison" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Échange" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Livraison" })).toBeVisible();
   await expect(page.locator(".info-process .info-cta")).toHaveAttribute("href", "/#contact");
   await capture(page, "evolution-process-desktop", true);
   await page.goto("/tarification");
   await expect(page.getByRole("heading", { name: "Chaque projet mérite sa juste mesure." })).toBeVisible();
-  await expect(page.getByText("Sur devis").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Demander une estimation" })).toHaveAttribute("href", "/#contact");
+  await expect(page.getByText("Sur devis")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Un prix adapté à votre ambition." })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Estimer le coût de votre site web" })).toBeVisible();
   await capture(page, "evolution-tarification-desktop", true);
   await page.goto("/nos-services");
-  for (const name of ["Création de sites web", "Développement d’applications", "Création de logos", "Création publicitaire"]) await expect(page.getByRole("heading", { name })).toBeVisible();
+  for (const name of ["Création de sites web", "Développement d’applications", "Création graphique", "Publicité numérique", "Production audiovisuelle", "Solutions numériques professionnelles"]) await expect(page.getByRole("heading", { name })).toBeVisible();
   await capture(page, "evolution-services-desktop", true);
   await page.getByRole("link", { name: /Discuter de ce service/ }).first().click();
-  await expect(page).toHaveURL(/service=Cr%C3%A9ation%20de%20sites%20web/);
-  await expect(page.locator("#contact-subject")).toHaveValue("Création de sites web");
+  await expect(page).toHaveURL(/service=Sites%20vitrines/);
+  await expect(page.locator("#contact-subject")).toHaveValue("Sites vitrines");
   await capture(page, "evolution-services-desktop");
 });
 
@@ -88,7 +89,7 @@ test("original client bundle is restored and cannot fake authentication", async 
   await expect(portal.locator(".access-form input[type=email]")).toBeInViewport();
   await expect(portal.locator(".access-form button[type=submit]")).toBeDisabled();
   await expect(page.getByText(/authentification réelle n’est pas configurée/)).toBeVisible();
-  for (const provider of ["Google", "GitHub", "X"]) await expect(page.getByRole("button", { name: new RegExp(`Continuer avec ${provider}`) })).toBeDisabled();
+  for (const provider of ["Google", "Microsoft", "GitHub", "X"]) await expect(page.getByRole("button", { name: new RegExp(`Continuer avec ${provider}`) })).toBeDisabled();
   await capture(page, "evolution-espace-client-desktop", true);
 });
 
@@ -96,6 +97,63 @@ test("portfolio remains empty and truthful", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Nos réalisations" })).toBeVisible();
   await expect(page.locator(".portfolio-empty")).toBeVisible();
   await expect(page.getByText(/Tesla|Nike|McDonald|ChatGPT/)).toHaveCount(0);
+});
+
+test("process accordions auto-open on scroll and respect manual toggles", async ({ page }) => {
+  await page.goto("/comment-ca-marche");
+  const exchange = page.getByRole("button", { name: "Échange" });
+  await exchange.scrollIntoViewIfNeeded();
+  await expect(exchange).toHaveAttribute("aria-expanded", "true");
+  await exchange.click();
+  await expect(exchange).toHaveAttribute("aria-expanded", "false");
+  await exchange.click();
+  await expect(exchange).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#step-detail-echange")).toContainText("Texte explicatif à personnaliser.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(exchange).toBeVisible();
+  await capture(page, "evolution-accordions-mobile", true);
+});
+
+test("pricing estimator calculates live, shows detail and passes summary to contact", async ({ page }) => {
+  await page.goto("/tarification");
+  await page.getByRole("button", { name: "Estimer le coût de votre site web" }).click();
+  const dialog = page.locator(".estimator-dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Quel produit vous intéresse ?").selectOption("vitrine-simple");
+  await dialog.getByRole("checkbox", { name: "Inclure Formulaire de contact" }).check();
+  await expect(dialog.locator(".estimator-live-total strong")).toHaveText("550 €");
+  await dialog.getByRole("button", { name: "Ajouter Pages supplémentaires" }).click();
+  await expect(dialog.locator(".estimator-live-total strong")).toHaveText("605 €");
+  await dialog.getByLabel("Quel produit vous intéresse ?").selectOption("landing");
+  await dialog.getByLabel("Quel produit vous intéresse ?").selectOption("vitrine-simple");
+  await expect(dialog.locator(".estimator-live-total strong")).toHaveText("605 €");
+  await capture(page, "evolution-estimate-configure-desktop");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await capture(page, "evolution-estimate-configure-mobile");
+  await dialog.getByRole("button", { name: "Voir le détail de l’estimation" }).click();
+  await expect(page.getByRole("heading", { name: "Votre estimation." })).toBeVisible();
+  await expect(dialog.locator(".estimator-result")).toContainText("605 €");
+  await expect(dialog.locator(".estimator-result")).toContainText("Pages supplémentaires × 1 page");
+  await page.getByRole("link", { name: "Discuter de ce projet" }).click();
+  await expect(page).toHaveURL(/estimate=/);
+  await expect(page.locator("#contact-subject")).toHaveValue("Estimation — Site vitrine simple");
+  await expect(page.locator("#contact-message")).toContainText("Formulaire de contact : + 60 €");
+  await expect(page.locator("#contact-message")).toContainText("605 €");
+});
+
+test("catalog examples open and close labelled conceptual previews", async ({ page }) => {
+  await page.goto("/nos-services");
+  await expect(page.locator(".service-catalog-row")).toHaveCount(30);
+  const open = page.getByRole("button", { name: "Agrandir l’illustration : Sites vitrines" });
+  await open.click();
+  const dialog = page.getByRole("dialog", { name: "Sites vitrines" });
+  await expect(dialog).toContainText("Illustration conceptuelle originale");
+  await page.getByRole("button", { name: "Fermer l’aperçu" }).click();
+  await expect(dialog).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator(".service-catalog-row").first()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await capture(page, "evolution-service-catalog-mobile", true);
 });
 
 test("contact validation remains real; no false success without backend", async ({ page }) => {

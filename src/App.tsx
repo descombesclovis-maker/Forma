@@ -7,6 +7,7 @@ import { Login } from "./client-spec/Login";
 import { InfoPage } from "./client-spec/InfoPages";
 import { Projects } from "./client-spec/Projects";
 import "./client-spec/vitrine.css";
+import "./client-spec/evolution-2.css";
 
 const paths: Record<string, "home" | "process" | "pricing" | "services" | "client"> = {
   "/": "home",

@@ -1,6 +1,6 @@
 # FORMA — site vitrine
 
-Site vitrine React, TypeScript et Vite sur une page : accueil, animation originale du grand F, portfolio et contact.
+Site vitrine React, TypeScript et Vite : accueil, animation originale du grand F, portfolio/contact, pages studio (processus, tarification, services) et portail client historique.
 
 ## Développement
 
@@ -15,15 +15,18 @@ Playwright ouvre le site sur `http://127.0.0.1:5174`. Les captures de validation
 
 ## Architecture
 
-- `src/App.tsx` : unique page, liens d’ancrage et normalisation des anciennes URL fragmentées.
+- `src/App.tsx` : routage des pages studio et normalisation des anciennes URL.
 - `src/client-spec/Home.tsx` : accueil et synchronisation au défilement de la scène 3D originale.
-- `src/client-spec/Projects.tsx` : galerie de projets vérifiables et état vide. Les futurs projets s’ajoutent au tableau `portfolioProjects`; ne renseigner que des réalisations réelles dont les droits de présentation sont confirmés.
-- `src/client-spec/Contact.tsx` : formulaire avec validations et états d’envoi honnêtes.
+- `src/client-spec/InfoPages.tsx` : accordéons du processus, estimateur et galerie de services.
+- `src/content/commentCaMarche.ts` : textes des étapes, modifiables sans toucher aux composants.
+- `src/config/pricing.ts` : prix de départ, sous-produits, options, unités et complexité; tous les montants sont des brouillons indicatifs à valider avant publication.
+- `src/content/services.ts` : catalogue extensible, chemins des exemples et mentions de provenance.
+- `public/service-examples/` : illustrations conceptuelles FORMA, explicitement non présentées comme réalisations client.
+- `src/client-spec/Login.tsx` et `public/original-client/` : interface historique compilée et scène d’origine. L’authentification reste désactivée tant qu’un backend sécurisé n’est pas configuré (voir `docs/CLIENT_AUTHENTICATION.md`).
+- `src/client-spec/Contact.tsx` : formulaire avec validations et états d’envoi honnêtes; l’estimation peut y transmettre un récapitulatif.
 - `src/client-spec/Chrome.tsx` : header, menu et pied de page partagés.
-- `public/scene/` : véritable moteur compilé de la scène originale. Le fichier `engine.js` et les ressources géométriques / matériaux de la scène ne sont pas reconstruits. Son pilotage par défilement et le rendu 3D sont conservés.
-- `src/identity.css` : identité typographique originale; `src/client-spec/vitrine.css` : styles de la vitrine.
-
-Les anciennes pages commerciales et l’espace client ne sont plus montés ni livrés. Les anciennes versions restent consultables dans l’historique Git.
+- `public/scene/` : véritable moteur compilé de la scène originale du F. Le fichier `engine.js` et les ressources géométriques / matériaux ne sont pas reconstruits.
+- `src/identity.css`, `src/client-spec/vitrine.css`, `src/client-spec/evolution-2.css` : typographie, identité commune et interactions nouvelles.
 
 ## Contact
 
