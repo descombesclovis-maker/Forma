@@ -1,6 +1,6 @@
-# Formulaire de contact FORMA
+# Fiche de contact et questions rapides FORMA
 
-Le dépôt ne contient actuellement aucun service d’envoi configuré ni aucune adresse de contact officielle vérifiable. Le formulaire n’affiche donc jamais de confirmation d’envoi en l’absence d’un serveur configuré.
+Le dépôt ne contient actuellement aucun service d’envoi configuré ni aucune adresse de contact officielle vérifiable. Le formulaire complet et le module de questions rapides n’affichent donc jamais de confirmation d’envoi en l’absence d’un serveur configuré.
 
 ## Configuration frontend
 

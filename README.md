@@ -1,41 +1,43 @@
-# FORMA — site vitrine
+# FORMA — site vitrine expérimental
 
-Site vitrine React, TypeScript et Vite : accueil, animation originale du grand F, portfolio/contact, pages studio (processus, tarification, services) et portail client historique.
+Base React / TypeScript / Vite. Cette branche `forma/refonte-contact-portfolio` est une **version de préparation**, distincte de la production et de `main`. Elle conserve le moteur du grand F original et présente les ajustements demandés.
 
-## Développement
+## Démarrer
+
+Pré-requis : Node.js 20+ et npm.
 
 ```sh
 npm ci
 npm run dev
+# Autre port : npm run dev -- --port 3001
 npm run build
+npx playwright install chromium
 npm test
 ```
 
-Playwright ouvre le site sur `http://127.0.0.1:5174`. Les captures de validation sont écrites dans `test-results/captures/` (exclu de Git).
+Le serveur Vite utilise le port 5173 par défaut. Playwright utilise 5174 via `playwright.config.ts`.
 
-## Architecture
+## Organisation
 
-- `src/App.tsx` : routage des pages studio et normalisation des anciennes URL.
-- `src/client-spec/Home.tsx` : accueil et synchronisation au défilement de la scène 3D originale.
-- `src/client-spec/InfoPages.tsx` : accordéons du processus, estimateur et galerie de services.
-- `src/content/commentCaMarche.ts` : textes des étapes, modifiables sans toucher aux composants.
-- `src/config/pricing.ts` : prix de départ, sous-produits, options, unités et complexité; tous les montants sont des brouillons indicatifs à valider avant publication.
-- `src/content/services.ts` : catalogue extensible, chemins des exemples et mentions de provenance.
-- `public/service-examples/` : illustrations conceptuelles FORMA, explicitement non présentées comme réalisations client.
-- `src/client-spec/Login.tsx` et `public/original-client/` : interface historique compilée et scène d’origine. L’authentification reste désactivée tant qu’un backend sécurisé n’est pas configuré (voir `docs/CLIENT_AUTHENTICATION.md`).
-- `src/client-spec/Contact.tsx` : formulaire avec validations et états d’envoi honnêtes; l’estimation peut y transmettre un récapitulatif.
-- `src/client-spec/Chrome.tsx` : header, menu et pied de page partagés.
-- `public/scene/` : véritable moteur compilé de la scène originale du F. Le fichier `engine.js` et les ressources géométriques / matériaux ne sont pas reconstruits.
-- `src/identity.css`, `src/client-spec/vitrine.css`, `src/client-spec/evolution-2.css` : typographie, identité commune et interactions nouvelles.
+- `src/client-spec/Home.tsx` : accueil, F original, quatre CTA autour du F. « Parlons de votre projet » ouvre `/nous-contacter`.
+- `src/client-spec/Chrome.tsx` : header centré avec FORMA®, bouton client conservé et menu allégé, footer et liens légaux.
+- `src/client-spec/Projects.tsx` et `public/portfolio-concepts/` : **huit projets fictifs de démonstration** (sites, logos, app, campagnes) étiquetés comme tels. Ils ne représentent pas des commandes ni des clients réels.
+- `src/client-spec/Contact.tsx` : fiche de contact complète + module de questions rapides. Ce module offre des réponses FAQ et un envoi de question par e-mail après configuration; **ce n'est pas une messagerie en direct**. `docs/CONTACT.md` précise le backend à configurer.
+- `src/client-spec/Legal.tsx` : textes de travail accessibles depuis le footer. **Les mentions légales et la politique de confidentialité sont incomplètes** et doivent être validées avant mise en ligne.
+- `src/client-spec/InfoPages.tsx` : « Comment ça marche ? » et services conservés, page Tarification réduite à l'estimateur.
+- `src/config/pricing.ts` : grille d'estimation indicative à valider; `src/content/services.ts` : 30 services avec miniatures de démonstration spécifiques.
+- `public/service-examples/showcase/` : miniatures conceptuelles FORMA propres à chaque service. Les liens « Voir une référence réelle » ouvrent des **sites externes authentiques**, sans affiliation ni revendication de réalisation.
+- `src/client-spec/refonte.css` : ajustements de mise en page et identité.
+- `public/scene/` : moteur compilé du véritable grand F; conserver ces fichiers inchangés.
+- `src/client-spec/Login.tsx` et `public/original-client/` : espace client historique. Authentification non opérationnelle sans backend OAuth configuré.
 
-## Contact
+## Parcours
 
-Aucun backend d’envoi ni adresse e-mail officielle vérifiée n’est présent dans le dépôt. Le formulaire ne prétend donc pas envoyer de message avant configuration. Voir [`docs/CONTACT.md`](docs/CONTACT.md) pour le contrat serveur et la variable publique `VITE_FORMA_CONTACT_ENDPOINT`. Aucun secret d’envoi ne doit être exposé dans le bundle frontend.
+Accueil `/` → « Nos réalisations » sur l'accueil → `/nous-contacter`.
+Le footer conserve l'accès à `/tarification`, `/politique-confidentialite` et `/mentions-legales` ; le menu principal simplifié propose Accueil, Nos réalisations, Nos services et Nous contacter. L'icône client reste dans le header.
 
-## Portfolio et informations de l’éditeur
+## Avant publication
 
-Le dépôt ne contient pas de réalisation suffisamment documentée pour être présentée comme un projet réel de FORMA. La galerie affiche donc un état vide élégant, sans faux clients ni exemples externes. Les liens sociaux et coordonnées ne sont pas inventés. Les mentions relatives à l’identité juridique de l’éditeur et de l’hébergeur doivent être complétées par FORMA avant publication définitive.
+Le travail graphique est présent mais le projet **n'est pas prêt pour une publication commerciale sans configuration** : service d'envoi inexistant, données légales manquantes, grille des prix non approuvée, référence portfolio à remplacer progressivement par des réalisations autorisées. Voir `docs/PRE_LANCEMENT.md` pour la feuille de route.
 
-## Déploiement
-
-Vercel construit l’application avec `npm ci` puis `npm run build` et sert `dist`. Les anciens chemins et fragments sont ramenés à l’accueil; les ancres `#accueil`, `#realisations` et `#contact` font défiler la même page. La production ne doit être remplacée qu’après validation.
+Aucune modification de production ni activation de paiement n'est comprise dans cette branche.
