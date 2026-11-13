@@ -1,55 +1,38 @@
-# FORMA
+# FORMA — site vitrine
 
-Interface React / TypeScript / Vite. Une seule version : `main`.
+Site vitrine React, TypeScript et Vite sur une page : accueil, animation originale du grand F, portfolio et contact.
 
-## Exécuter
+## Développement
 
 ```sh
 npm ci
 npm run dev
 npm run build
-npm run preview
-```
-
-## Vérifier
-
-```sh
-npx playwright install chromium
 npm test
 ```
 
-Les tests parcourent l’accueil et son F original, le menu, le catalogue, les trois étapes du formulaire F, les options au défilement, la connexion manipulable et le contact, sur ordinateur et mobile. Ils vérifient les sélections, le clavier, le tactile et la réduction des animations. Les captures réelles sont générées dans `test-results/captures/`, exclu de Git.
+Playwright ouvre le site sur `http://127.0.0.1:5174`. Les captures de validation sont écrites dans `test-results/captures/` (exclu de Git).
 
-## Fichiers conservés
+## Architecture
 
-- `src/` : l’interface actuelle, sa navigation et ses styles.
-- `public/scene/` : le moteur compilé de la scène 3D originale et son adaptateur minimal. Géométrie, matières, éclairage, caméra et assemblage sont conservés. Aucune ancienne page n’y est montée.
-- `public/examples/`, `public/portfolio/` : uniquement les visuels utilisés et leurs attributions/licences.
-- `docs/REFERENCES_VISUELLES.md` : sources externes du carrousel et décision de ne pas redistribuer de captures/logos de marques sans licence explicite.
-- `tests/` et fichiers de configuration : compilation, contrôle des parcours et déploiement.
+- `src/App.tsx` : unique page, liens d’ancrage et normalisation des anciennes URL fragmentées.
+- `src/client-spec/Home.tsx` : accueil et synchronisation au défilement de la scène 3D originale.
+- `src/client-spec/Projects.tsx` : galerie de projets vérifiables et état vide. Les futurs projets s’ajoutent au tableau `portfolioProjects`; ne renseigner que des réalisations réelles dont les droits de présentation sont confirmés.
+- `src/client-spec/Contact.tsx` : formulaire avec validations et états d’envoi honnêtes.
+- `src/client-spec/Chrome.tsx` : header, menu et pied de page partagés.
+- `public/scene/` : véritable moteur compilé de la scène originale. Le fichier `engine.js` et les ressources géométriques / matériaux de la scène ne sont pas reconstruits. Son pilotage par défilement et le rendu 3D sont conservés.
+- `src/identity.css` : identité typographique originale; `src/client-spec/vitrine.css` : styles de la vitrine.
 
-Le moteur `engine.js` provient du bundle original `index-kVG0ynuN.js` : sa partie jusqu’à la fonction `cA` a été conservée à l’identique, puis les anciennes interfaces ont été retirées. `scene.js` expose seulement le grand F avec le même pilotage ScrollTrigger ; `src/identity.css` conserve les règles originales du petit logo et de la typographie.
+Les anciennes pages commerciales et l’espace client ne sont plus montés ni livrés. Les anciennes versions restent consultables dans l’historique Git.
+
+## Contact
+
+Aucun backend d’envoi ni adresse e-mail officielle vérifiée n’est présent dans le dépôt. Le formulaire ne prétend donc pas envoyer de message avant configuration. Voir [`docs/CONTACT.md`](docs/CONTACT.md) pour le contrat serveur et la variable publique `VITE_FORMA_CONTACT_ENDPOINT`. Aucun secret d’envoi ne doit être exposé dans le bundle frontend.
+
+## Portfolio et informations de l’éditeur
+
+Le dépôt ne contient pas de réalisation suffisamment documentée pour être présentée comme un projet réel de FORMA. La galerie affiche donc un état vide élégant, sans faux clients ni exemples externes. Les liens sociaux et coordonnées ne sont pas inventés. Les mentions relatives à l’identité juridique de l’éditeur et de l’hébergeur doivent être complétées par FORMA avant publication définitive.
 
 ## Déploiement
 
-Le projet Vercel existant est `forma-publier-maintenant`. `vercel.json` définit Vite, `npm ci`, `npm run build` et le répertoire `dist`. Le dépôt est relié à Vercel : publier `main` déclenche le déploiement de production sur l’hébergement existant.
-
-Les routes publiques utilisent des fragments `/#/…`. Aucun secret n’est nécessaire pour compiler cette interface.
-
-## Connexions restant à réaliser
-
-La connexion par mot de passe et le formulaire de contact affichent honnêtement l’absence de service. Aucune authentification, transmission de message ou transaction n’est simulée. Le projet et ses photos sont conservés en mémoire pendant la navigation ; le rechargement les efface. Les informations juridiques et les capacités des logiciels restent à valider.
-
-### Connexion Google / GitHub / X
-
-Les boutons OAuth ne sont activés que lorsqu’un point d’entrée backend est configuré. En local, ajoutez dans `.env.local` :
-
-```dotenv
-VITE_FORMA_OAUTH_START_URL=https://api.votre-domaine.example/auth/oauth/start
-```
-
-Cette variable est une URL publique, jamais un secret. Elle doit pointer vers un backend FORMA qui accepte `?provider=google`, `?provider=github` ou `?provider=x`, puis réalise le flux OAuth du fournisseur. Sans cette variable, les trois boutons restent visibles mais désactivés et l’interface indique clairement que la connexion rapide n’est pas configurée.
-
-**Aucun secret client OAuth ne doit être placé dans Vite, dans une variable `VITE_*`, dans le bundle ou dans le dépôt.** Les identifiants/secrets et les URI de retour Google, GitHub et X doivent être configurés uniquement côté serveur chez chaque fournisseur. Le backend doit générer et vérifier `state` et PKCE, limiter les URI de retour autorisées, valider les jetons côté serveur, puis créer la session FORMA avec un cookie `HttpOnly`, `Secure` (en production) et `SameSite` approprié. Le backend doit aussi gérer les erreurs et renvoyer l’utilisateur vers une page FORMA déterminée. L’application ne prétend pas qu’un utilisateur est connecté tant que cette intégration serveur n’est pas construite et vérifiée.
-
-Le point d’entrée backend et les applications OAuth des fournisseurs ne sont pas configurés dans ce dépôt à ce jour ; les boutons resteront donc désactivés jusqu’à leur mise en place.
+Vercel construit l’application avec `npm ci` puis `npm run build` et sert `dist`. Les anciens chemins et fragments sont ramenés à l’accueil; les ancres `#accueil`, `#realisations` et `#contact` font défiler la même page. La production ne doit être remplacée qu’après validation.

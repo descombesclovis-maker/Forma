@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Arrow, href } from "./Chrome";
+import { Arrow } from "./Chrome";
 
 export function Home() {
   const intro = useRef<HTMLElement>(null);
@@ -126,8 +126,8 @@ export function Home() {
             allow="autoplay"
           />
           {!ready && <p className="spec-build-status" role="status">{failed ? "Le chargement de l’animation prend plus de temps que prévu." : "Chargement de l’animation…"}</p>}
-          <a className="spec-build-cta" href={href("catalogue")} tabIndex={ctaReady ? 0 : -1} aria-hidden={!ctaReady}>
-            Démarrer mon projet <Arrow />
+          <a className="spec-build-cta" href="#contact" onClick={(event) => { event.preventDefault(); document.getElementById("contact")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); history.replaceState(null, "", `${location.pathname}${location.search}#contact`); }} tabIndex={ctaReady ? 0 : -1} aria-hidden={!ctaReady}>
+            Parlons de votre projet <Arrow />
           </a>
         </div>
       </section>
