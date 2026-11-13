@@ -25,6 +25,7 @@ Les tests parcourent l’accueil et son F original, le menu, le catalogue, les t
 - `src/` : l’interface actuelle, sa navigation et ses styles.
 - `public/scene/` : le moteur compilé de la scène 3D originale et son adaptateur minimal. Géométrie, matières, éclairage, caméra et assemblage sont conservés. Aucune ancienne page n’y est montée.
 - `public/examples/`, `public/portfolio/` : uniquement les visuels utilisés et leurs attributions/licences.
+- `docs/REFERENCES_VISUELLES.md` : sources externes du carrousel et décision de ne pas redistribuer de captures/logos de marques sans licence explicite.
 - `tests/` et fichiers de configuration : compilation, contrôle des parcours et déploiement.
 
 Le moteur `engine.js` provient du bundle original `index-kVG0ynuN.js` : sa partie jusqu’à la fonction `cA` a été conservée à l’identique, puis les anciennes interfaces ont été retirées. `scene.js` expose seulement le grand F avec le même pilotage ScrollTrigger ; `src/identity.css` conserve les règles originales du petit logo et de la typographie.

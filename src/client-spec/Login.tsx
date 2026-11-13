@@ -53,6 +53,43 @@ export function Login() {
       doc.head?.append(style);
     }
 
+    // The legacy portal is same-origin, so mirror FORMA's shared cursor inside its iframe too.
+    if (doc.defaultView?.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      doc.documentElement.classList.add("forma-custom-cursor");
+      if (!doc.querySelector(".forma-cursor")) {
+        const pointer = doc.createElement("div");
+        pointer.className = "forma-cursor";
+        pointer.setAttribute("aria-hidden", "true");
+        pointer.innerHTML = "<i></i>";
+        const pointerStyle = doc.createElement("style");
+        pointerStyle.textContent = `html.forma-custom-cursor,html.forma-custom-cursor *{cursor:none!important}html.forma-custom-cursor input,html.forma-custom-cursor textarea,html.forma-custom-cursor [contenteditable=true]{cursor:text!important}.forma-cursor{position:fixed;z-index:10000;left:0;top:0;width:23px;height:23px;border:1px solid #11110f;border-radius:50%;background:transparent;pointer-events:none;opacity:0;transition:opacity .14s ease,width .2s ease,height .2s ease;will-change:transform;mix-blend-mode:multiply}.forma-cursor:before{content:'';position:absolute;left:50%;top:50%;width:3px;height:3px;border-radius:50%;background:#11110f;transform:translate(-50%,-50%)}.forma-cursor.is-visible{opacity:1}.forma-cursor.is-active{width:32px;height:32px;background:#11110f0b}.forma-cursor.is-down{width:19px;height:19px}@media(prefers-reduced-motion:reduce){.forma-cursor{transition:none!important}}`;
+        doc.head?.append(pointerStyle);
+        doc.body?.append(pointer);
+        let raf = 0;
+        let x = -100;
+        let y = -100;
+        doc.addEventListener("pointermove", (event) => {
+          if (event.pointerType !== "mouse") return;
+          x = event.clientX;
+          y = event.clientY;
+          pointer.classList.add("is-visible");
+          if (raf) return;
+          raf = doc.defaultView!.requestAnimationFrame(() => {
+            pointer.style.transform = `translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
+            raf = 0;
+          });
+        }, { passive: true });
+        doc.addEventListener("pointerover", (event) => {
+          const target = event.target;
+          if (!(target instanceof doc.defaultView!.Element)) return;
+          pointer.classList.toggle("is-active", !!target.closest("a,button,[role=button]"));
+        }, { passive: true });
+        doc.addEventListener("pointerdown", (event) => { if (event.pointerType === "mouse") pointer.classList.add("is-down"); }, { passive: true });
+        doc.addEventListener("pointerup", () => pointer.classList.remove("is-down"), { passive: true });
+        doc.addEventListener("pointerleave", () => pointer.classList.remove("is-visible","is-active","is-down"));
+      }
+    }
+
     const form = doc.querySelector<HTMLFormElement>(".access-form");
     const actions = form?.querySelector<HTMLElement>(".access-form__actions");
     if (!form || !actions) {
@@ -117,7 +154,9 @@ export function Login() {
   }
 
   return (
-    <section className="spec-original-login" aria-label="Espace client FORMA">
+    <section className="spec-original-login" aria-label="Espace client FORMA"
+      onPointerEnter={() => document.querySelector(".forma-cursor")?.classList.add("is-suspended")}
+      onPointerLeave={() => document.querySelector(".forma-cursor")?.classList.remove("is-suspended")}>
       <iframe
         ref={frame}
         src="/original-client/index.html#connexion"

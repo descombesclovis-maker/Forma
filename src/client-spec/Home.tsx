@@ -92,11 +92,7 @@ export function Home() {
           <div className="spec-intro-content">
             <p className="spec-intro-eyebrow">Studio de création numérique</p>
             <h1>Donnez forme à l’impossible</h1>
-            <div className="spec-scroll-cue" aria-label="Scrollez pour voir la suite">
-              <span className="spec-scroll-guide" aria-hidden="true"><i /><i /><i /></span>
-              <span>Scrollez pour voir la suite</span>
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v15m-6-6 6 6 6-6" /></svg>
-            </div>
+            <span className="spec-scroll-guide" aria-hidden="true"><i /><i /><i /></span>
             <ul className="spec-assurances" aria-label="Nos engagements">
               <li>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.2 2" /></svg>
@@ -111,6 +107,10 @@ export function Home() {
                 <span><b>03</b><strong>Accompagnement client</strong></span>
               </li>
             </ul>
+            <div className="spec-scroll-cue" aria-label="Scrollez pour voir la suite">
+              <span>Scrollez pour voir la suite</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v15m-6-6 6 6 6-6" /></svg>
+            </div>
           </div>
         </div>
       </section>

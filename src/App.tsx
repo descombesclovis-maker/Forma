@@ -8,8 +8,10 @@ import { Options } from "./client-spec/Options";
 import { Login } from "./client-spec/Login";
 import { Contact, Legal } from "./client-spec/Contact";
 import { Home } from "./client-spec/Home";
+import { GlobalCursor } from "./client-spec/GlobalCursor";
 import "./client-spec/spec.css";
 import "./client-spec/prompt4.css";
+import "./client-spec/prompt5.css";
 const routes = [
   "accueil",
   "catalogue",
@@ -42,6 +44,7 @@ export default function App() {
   return (
     <ProjectProvider>
       <div className="spec">
+        <GlobalCursor />
         <Header route={route} />
         <main ref={main} tabIndex={-1}>
           {route === "accueil" ? (

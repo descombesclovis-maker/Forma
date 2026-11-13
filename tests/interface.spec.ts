@@ -81,6 +81,13 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   await expect(page.locator(".spec-assurances li").nth(0)).toContainText("Livraison en 3 à 7 jours");
   await expect(page.locator(".spec-assurances li").nth(1)).toContainText("Créations sans IA");
   await expect(page.locator(".spec-assurances li").nth(2)).toContainText("Accompagnement client");
+  await expect(page.locator(".spec-scroll-cue")).toContainText("Scrollez pour voir la suite");
+  const order = await page.evaluate(() => {
+    const y = (selector: string) => document.querySelector(selector)!.getBoundingClientRect().top;
+    return [y(".spec-intro h1"), y(".spec-assurances"), y(".spec-scroll-cue")];
+  });
+  expect(order[0]).toBeLessThan(order[1]);
+  expect(order[1]).toBeLessThan(order[2]);
   await expect(page.locator(".spec-intro h1")).toHaveText(
     "Donnez forme à l’impossible",
   );
@@ -113,6 +120,7 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   await page.evaluate(() => scrollTo(0, innerHeight * 1.8));
   await expect(page.locator(".spec-build")).toHaveAttribute("data-cta-ready", "true");
   await expect(page.getByRole("link", { name: "Démarrer mon projet" })).toBeVisible();
+  await shot(page, "prompt5-grand-f-cta-desktop");
   const ctaBox = (await page.locator(".spec-build-cta").boundingBox())!;
   expect(ctaBox.x + ctaBox.width / 2).toBeGreaterThan(720);
   await page.getByRole("link", { name: "Démarrer mon projet" }).click();
@@ -128,17 +136,20 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
     [3, "Publicité"],
   ] as const) {
     await expect(page.locator(".product-card h2")).toHaveText(title);
+    await shot(page, ["carousel-tesla-desktop", "carousel-chatgpt-desktop", "carousel-nike-desktop", "carousel-mcdonalds-desktop"][index]);
     if (index < 3)
       await page.getByRole("button", { name: "Produit suivant" }).click();
   }
   await page.getByRole("button", { name: "Produit précédent" }).click();
   await page.keyboard.press("ArrowRight");
   await expect(page.locator(".product-card h2")).toHaveText("Publicité");
-  await page.getByRole("button", { name: "Sélectionner ce produit" }).click();
-  await expect(page.getByRole("button", { name: "Produit sélectionné" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await expect(page.getByRole("button", { name: "Commander ma publicité" })).toBeVisible();
+  await page.getByRole("button", { name: "Commander ma publicité" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Votre sélection est mémorisée");
+  await expect(page.getByRole("dialog")).toContainText("Aucune commande ni paiement n’a été effectué.");
+  expect(await page.evaluate(() => sessionStorage.getItem("forma:selected-product"))).toBe("publicite");
+  await shot(page, "catalogue-publicite-attente-desktop");
+  await page.getByRole("button", { name: "Retourner au carrousel" }).click();
   await shot(page, "catalogue-desktop", true);
 });
 test("Publicité : carte, reflets au survol et captures desktop/mobile", async ({ page }) => {
@@ -147,7 +158,8 @@ test("Publicité : carte, reflets au survol et captures desktop/mobile", async (
   await page.getByRole("button", { name: "Afficher Publicité" }).click();
   await expect(page.locator(".product-card h2")).toHaveText("Publicité");
   await expect(page.locator(".product-process li")).toHaveCount(5);
-  await expect(page.locator(".product-disclaimer")).toContainText("Ni réalisation FORMA ni affiliation");
+  await expect(page.locator(".product-disclaimer")).toContainText("Les marques et contenus appartiennent à leurs titulaires");
+  await expect(page.locator(".product-card-visual a")).toHaveAttribute("href", "https://corporate.mcdonalds.com/corpmcd/our-stories/article/minecraft-movie-global-meal.html");
   await page.locator(".product-card").hover({ position: { x: 250, y: 250 } });
   await page.waitForTimeout(450);
   expect(await page.locator(".product-card").evaluate((el) => getComputedStyle(el).transform)).not.toBe("none");
@@ -158,6 +170,39 @@ test("Publicité : carte, reflets au survol et captures desktop/mobile", async (
   await expect(page.locator(".product-card h2")).toHaveText("Publicité");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await shot(page, "carousel-publicite-mobile", true);
+});
+test("curseur partagé, références externes explicites et commandes mémorisées sans faux parcours", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/#/accueil");
+  await expect(page.locator(".forma-cursor")).toBeAttached();
+  await expect.poll(() => page.locator("html").evaluate((el) => el.classList.contains("forma-custom-cursor"))).toBe(true);
+  await page.mouse.move(450, 330);
+  await expect(page.locator(".forma-cursor")).toHaveClass(/is-visible/);
+  await page.goto("/#/catalogue");
+
+  const offerings = [
+    ["Sites web", "Commander mon site web", "https://www.tesla.com/"],
+    ["Applications", "Commander mon application", "https://chatgpt.com/"],
+    ["Logos", "Commander mon logo", "https://investors.nike.com/company-information/who-we-are"],
+    ["Publicité", "Commander ma publicité", "https://corporate.mcdonalds.com/corpmcd/our-stories/article/minecraft-movie-global-meal.html"],
+  ] as const;
+  for (let index = 0; index < offerings.length; index++) {
+    const [title, label, source] = offerings[index];
+    await expect(page.locator(".product-card h2")).toHaveText(title);
+    await expect(page.getByRole("button", { name: label })).toBeVisible();
+    await expect(page.locator(".product-card-visual a")).toHaveAttribute("href", source);
+    await expect(page.locator(".product-card")).not.toContainText("Beyond the ordinary");
+    await page.getByRole("button", { name: label }).click();
+    await expect(page.getByRole("dialog")).toContainText(title);
+    expect(await page.evaluate(() => sessionStorage.getItem("forma:selected-product"))).toBe(["sites", "applications", "logos", "publicite"][index]);
+    await page.getByRole("button", { name: "Retourner au carrousel" }).click();
+    if (index < offerings.length - 1) await page.getByRole("button", { name: "Produit suivant" }).click();
+  }
+  await expect(page.getByRole("button", { name: /Sélectionner ce produit/ })).toHaveCount(0);
+  await page.goto("/#/connexion");
+  const client = page.frameLocator(".spec-original-login iframe");
+  await expect(client.locator(".forma-cursor")).toBeAttached({ timeout: 20000 });
+  await expect(client.locator("html")).toHaveClass(/forma-custom-cursor/);
 });
 test("trois types authentiques et formulaire F exact avec photos et conservation", async ({
   page,
@@ -361,6 +406,9 @@ test("toutes les interfaces, footer identique et captures desktop/mobile", async
       await page.evaluate(() => scrollTo(0, innerHeight * 1.7));
       await page.waitForTimeout(900);
       await shot(page, "grand-f-mobile");
+      await page.evaluate(() => scrollTo(0, document.body.scrollHeight));
+      await expect(page.locator(".spec-build")).toHaveAttribute("data-cta-ready", "true");
+      await shot(page, "prompt5-grand-f-cta-mobile");
       await page.goto("/#/choix-site");
       await page.getByRole("button", { name: /One Page/ }).click();
       await page
@@ -421,8 +469,10 @@ test("mobile tactile, carrousel et réduction des animations", async ({ browser 
     touchPoints: [],
   });
   await expect(page.locator(".product-card h2")).toHaveText("Applications");
-  await page.getByRole("button", { name: "Sélectionner ce produit" }).click();
-  await expect(page.getByRole("button", { name: "Produit sélectionné" })).toBeVisible();
+  await expect(page.locator(".forma-cursor")).toBeHidden();
+  await page.getByRole("button", { name: "Commander mon application" }).click();
+  await expect(page.getByRole("dialog")).toContainText("Aucune commande ni paiement n’a été effectué.");
+  await page.getByRole("button", { name: "Retourner au carrousel" }).click();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("http://127.0.0.1:5174/#/options");
   await expect(page.locator(".is-reduced")).toHaveCount(5);

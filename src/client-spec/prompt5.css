@@ -1,0 +1,126 @@
+/* Prompt 5: reordered scroll cue, lower CTA, one shared mouse cursor and honest official reference links. */
+.spec-intro-content { display:flex; flex-direction:column; align-items:center; }
+.spec-intro-content > .spec-scroll-guide {
+  position:static; left:auto; bottom:auto; margin:24px 0 4px; transform:none;
+  display:flex; width:18px; height:28px; gap:4px; align-items:center; justify-content:center;
+}
+.spec-intro-content > .spec-scroll-guide i { width:12px; height:1px; }
+.spec-intro-content > .spec-scroll-guide i:nth-child(2) { width:8px; }
+.spec-intro-content > .spec-scroll-guide i:nth-child(3) { width:4px; }
+.spec-assurances { margin-top:10px; }
+.spec-scroll-cue {
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  min-height:0; margin:30px auto 0; color:#65655f; font-size:10px; letter-spacing:.06em;
+  animation:assurance-arrive .7s .16s both;
+}
+.spec-scroll-cue > svg { width:15px; height:15px; stroke-width:1.3; animation:scroll-cue-down 1.9s ease-in-out infinite; }
+.spec-build-cta { left:auto; right:clamp(36px,7vw,110px); top:74%; transform:translateY(-50%); }
+.spec-build-cta:hover { transform:translateY(calc(-50% - 2px)); }
+.spec-build-cta:active { transform:translateY(-48%) scale(.97); }
+
+/* A restrained custom cursor, enabled only for fine-pointer desktop hardware. */
+.forma-cursor {
+  position:fixed; z-index:10000; left:0; top:0; width:23px; height:23px;
+  border:1px solid #11110f; border-radius:50%; background:transparent;
+  pointer-events:none; opacity:0; transition:opacity .14s ease, width .2s ease, height .2s ease, background .2s ease, border-color .2s ease;
+  will-change:transform; mix-blend-mode:multiply;
+}
+.forma-cursor::before { content:""; position:absolute; inset:50% auto auto 50%; width:3px; height:3px; border-radius:50%; background:#11110f; transform:translate(-50%,-50%); }
+.forma-cursor.is-visible { opacity:1; }
+.forma-cursor.is-active { width:32px; height:32px; background:#11110f0b; }
+.forma-cursor.is-down { width:19px; height:19px; }
+.forma-cursor.is-text { opacity:.28; }
+.forma-cursor.is-suspended { opacity:0!important; }
+html.forma-custom-cursor, html.forma-custom-cursor * { cursor:none!important; }
+html.forma-custom-cursor input, html.forma-custom-cursor textarea, html.forma-custom-cursor [contenteditable="true"] { cursor:text!important; }
+@media (hover:none), (pointer:coarse) { .forma-cursor { display:none!important; } }
+@media (prefers-reduced-motion:reduce) { .forma-cursor { transition:none!important; } }
+
+/* Keep the requested physical monitor; its screen now links to the real Tesla website, not a fabricated capture. */
+.reference-screen {
+  background:linear-gradient(145deg,#f7f7f3,#e5e5df 70%,#d6d6d0); color:#11110f;
+  display:flex; flex-direction:column; transform:rotateY(-7deg) rotateX(2deg);
+}
+.reference-screen-kicker { display:flex; justify-content:space-between; padding:12px 16px; color:#66665f; font-size:6px; letter-spacing:.14em; border-bottom:1px solid #11110f1c; }
+.reference-screen-content { width:min(76%,390px); margin:auto; text-align:center; }
+.reference-mark { display:block; font-size:clamp(12px,1.7vw,19px); font-weight:600; letter-spacing:.25em; }
+.reference-screen-content h3 { margin:17px 0 8px; font-size:clamp(14px,2.2vw,27px); line-height:1.05; font-weight:500; letter-spacing:-.045em; }
+.reference-screen-content p, .reference-device-body p, .reference-plinth p { color:#686861; font-size:clamp(8px,.85vw,11px); line-height:1.55; }
+.reference-link { display:inline-flex; min-height:34px; justify-content:center; align-items:center; gap:12px; margin-top:12px; padding:8px 12px; border:1px solid #11110f55; color:#11110f; font-size:8px; letter-spacing:.03em; transition:background .22s ease,color .22s ease,transform .22s ease; }
+.reference-link svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:1.4; }
+.reference-link:hover { color:#fff; background:#11110f; transform:translateY(-2px); }
+.reference-screen-url { padding:0 15px 10px; text-align:right; color:#77776f; font-size:6px; letter-spacing:.18em; }
+.reference-device {
+  position:relative; width:94%; height:84%; overflow:hidden; border:1px solid #ffffff; border-radius:13px;
+  color:#11110f; background:linear-gradient(145deg,#fff,#f1f1ec);
+  box-shadow:0 28px 55px #0002,0 3px 8px #0001; transform:rotateY(-5deg) rotateX(2deg);
+}
+.reference-device--app { display:flex; flex-direction:column; }
+.reference-device-bar { height:34px; flex:0 0 34px; display:flex; align-items:center; gap:5px; padding:0 12px; border-bottom:1px solid #11110f12; background:#f8f8f5; }
+.reference-device-dot { width:5px; height:5px; border-radius:50%; background:#c9c9c2; }
+.reference-device-bar b { margin-left:auto; color:#808078; font-size:6px; font-weight:500; letter-spacing:.13em; }
+.reference-device-body { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:16px; text-align:center; }
+.reference-mark--openai { font-size:clamp(12px,1.7vw,18px); letter-spacing:-.03em; }
+.reference-device-body h3 { margin:19px 0 0; font-size:clamp(18px,2.5vw,30px); font-weight:500; letter-spacing:-.055em; }
+.reference-device-body p { max-width:230px; }
+.reference-device-url { position:absolute; right:13px; bottom:9px; color:#77776f; font-size:6px; letter-spacing:.16em; }
+.reference-plinth {
+  position:relative; width:min(86%,410px); min-height:285px; padding:28px 30px 22px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; background:linear-gradient(145deg,#fff,#efefea); border:1px solid #fff; box-shadow:0 24px 48px #0002,0 3px 8px #0001; transform:rotateY(-6deg) rotateX(2deg);
+}
+.reference-plinth::after { content:""; position:absolute; inset:auto 8% -17px; height:22px; background:linear-gradient(#bdbdb6,#777770); transform:skewX(-30deg); z-index:-1; box-shadow:0 14px 15px #0002; }
+.reference-plinth-index,.reference-plinth-foot { color:#77776f; font-size:7px; letter-spacing:.17em; }
+.reference-plinth-symbol { width:88px; height:88px; display:grid; place-items:center; margin:20px 0 12px; border:1px solid #11110f25; border-radius:50%; color:#11110f; font-size:18px; font-weight:300; }
+.reference-plinth h3 { margin:0; font-size:clamp(16px,2vw,23px); font-weight:500; letter-spacing:-.04em; }
+.reference-plinth p { max-width:275px; margin:9px 0 0; }
+.reference-plinth .reference-link { margin-top:8px; }
+.reference-plinth-foot { margin-top:17px; font-size:6px; }
+.reference-campaign-gallery { position:relative; width:100%; height:100%; display:grid; place-items:center; perspective:1000px; }
+.reference-poster { position:absolute; display:flex; flex-direction:column; justify-content:center; box-shadow:0 24px 45px #0002; }
+.reference-poster--back { width:43%; height:69%; left:8%; top:12%; padding:18px; color:#fff; background:linear-gradient(145deg,#57574f,#20201d); transform:rotateY(13deg) rotateZ(-6deg) translateZ(-35px); }
+.reference-poster--back span,.reference-poster--front > span { font-size:6px; letter-spacing:.14em; }
+.reference-poster--back b { margin-top:35%; font-size:clamp(12px,1.8vw,20px); line-height:.98; letter-spacing:-.055em; }
+.reference-poster--back i { margin-top:auto; color:#c9c9c1; font-size:6px; font-style:normal; letter-spacing:.1em; }
+.reference-poster--front { width:52%; min-height:74%; right:8%; top:12%; padding:22px; color:#11110f; background:linear-gradient(145deg,#fff,#f0f0ea); border:1px solid #fff; transform:rotateY(-9deg) rotateZ(4deg) translateZ(35px); }
+.reference-poster--front h3 { margin:25px 0 7px; font-size:clamp(15px,2vw,24px); font-weight:500; line-height:1.02; letter-spacing:-.055em; }
+.reference-poster--front p { color:#696961; font-size:8px; line-height:1.45; }
+.reference-poster--front .reference-link { align-self:flex-start; margin-top:10px; }
+.reference-campaign-gallery > .art-label { left:0; bottom:1px; }
+
+.order-waiting-shade { position:fixed; z-index:90; inset:0; display:grid; place-items:center; padding:22px; background:#11110f62; backdrop-filter:blur(8px); }
+.order-waiting { width:min(100%,490px); padding:clamp(26px,5vw,46px); background:#f4f4ef; border:1px solid #11110f22; box-shadow:0 25px 90px #0003; }
+.order-waiting .spec-intro-eyebrow { color:#72726b; font-size:9px; letter-spacing:.14em; text-transform:uppercase; }
+.order-waiting h2 { margin:12px 0; font-size:clamp(36px,7vw,56px); line-height:1; font-weight:500; letter-spacing:-.065em; }
+.order-waiting > p:not(.spec-intro-eyebrow) { color:#5e5e58; font-size:14px; line-height:1.6; }
+.order-waiting .order-waiting-note { font-size:11px!important; }
+.order-waiting .product-select { margin-top:14px; }
+
+@media (max-width:700px) {
+  .spec-intro-content > .spec-scroll-guide { margin:15px 0 0; height:22px; }
+  .spec-assurances { margin-top:8px; }
+  .spec-scroll-cue { margin-top:20px; gap:4px; }
+  .spec-build-cta { top:81%; right:auto; left:50%; transform:translate(-50%,-50%); }
+  .spec-build-cta:hover { transform:translate(-50%,calc(-50% - 2px)); }
+  .spec-build-cta:active { transform:translate(-50%,-48%) scale(.97); }
+  .product-art--site { min-height:250px; }
+  .reference-screen { border-width:6px; border-bottom-width:9px; border-radius:9px 9px 5px 5px; }
+  .reference-screen-kicker { padding:8px 8px; font-size:5px; }
+  .reference-screen-content { width:88%; }
+  .reference-screen-content h3 { margin:9px 0 4px; font-size:16px; }
+  .reference-screen-content p,.reference-device-body p,.reference-plinth p { font-size:8px; }
+  .reference-device-bar { height:26px; flex-basis:26px; }
+  .reference-device-body { padding:9px; }
+  .reference-device-body h3 { margin-top:11px; font-size:20px; }
+  .reference-link { min-height:31px; margin-top:7px; padding:6px 8px; font-size:7px; }
+  .reference-plinth { min-height:230px; padding:18px 16px; }
+  .reference-plinth-symbol { width:58px; height:58px; margin:12px 0 8px; }
+  .reference-plinth-foot { margin-top:10px; }
+  .reference-poster--back { padding:12px; }
+  .reference-poster--front { padding:14px; }
+  .reference-poster--front h3 { margin-top:15px; font-size:16px; }
+  .reference-poster--front p { font-size:7px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .spec-scroll-cue,.spec-scroll-cue > svg { animation:none!important; }
+  .reference-link,.product-art,.product-card { transition:none!important; }
+}
