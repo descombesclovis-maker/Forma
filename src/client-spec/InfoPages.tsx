@@ -13,47 +13,52 @@ function ContactCta({ children = "Parlons de votre projet", href = "/nous-contac
   return <a className="contact-submit info-cta" href={href}>{children}<Arrow /></a>;
 }
 
+function ProcessIcon({ id }: { id: string }) {
+  const common = { viewBox: "0 0 48 48", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true as const };
+  if (id === "maquette") return <svg {...common}><rect x="5" y="8" width="38" height="27" rx="3" /><path d="M5 15h38M11 12h1M17 12h1M14 26h19M14 30h11M15 41h18M24 35v6" /><rect x="10" y="21" width="8" height="9" rx="1" /></svg>;
+  if (id === "echange") return <svg {...common}><path d="M7 10h24a5 5 0 0 1 5 5v15a5 5 0 0 1-5 5H18L9 42v-7a5 5 0 0 1-5-5V15a5 5 0 0 1 3-5Z" /><path d="M13 19h16M13 25h12M33 12h6a5 5 0 0 1 5 5v13" /></svg>;
+  if (id === "creation") return <svg {...common}><path d="m24 4 4.5 13.5L42 22l-13.5 4.5L24 40l-4.5-13.5L6 22l13.5-4.5L24 4Z" /><path d="M9 5v8M5 9h8M39 34v9M34.5 38.5h9" /></svg>;
+  return <svg {...common}><path d="m6 15 18-9 18 9v23l-18 9L6 38V15Z" /><path d="m6 15 18 10 18-10M24 25v22M15 11l18 10M16 32l5 5 10-11" /></svg>;
+}
+
 function ProcessSequence() {
   const sequence = useRef<HTMLElement>(null);
-  const choices = useRef(new Map<string, boolean>());
-  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [active, setActive] = useState<string | null>(null);
   useEffect(() => {
-    const root = sequence.current;
-    if (!root) return;
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        const id = (entry.target as HTMLElement).dataset.stepId;
-        if (id && entry.isIntersecting && entry.intersectionRatio >= .32 && !choices.current.has(id)) {
-          setOpen((current) => current[id] ? current : { ...current, [id]: true });
-        }
-      }
-    }, { threshold: [.12, .32, .65], rootMargin: "0px 0px -12% 0px" });
-    root.querySelectorAll<HTMLElement>("[data-step-id]").forEach((step) => observer.observe(step));
-    return () => observer.disconnect();
+    let raf = 0;
+    const evaluate = () => {
+      raf = 0;
+      const root = sequence.current;
+      if (!root) return;
+      const middle = window.innerHeight * 0.53;
+      const rows = Array.from(root.querySelectorAll<HTMLElement>("[data-step-id]"));
+      const crossing = rows.find((row) => {
+        const rect = row.getBoundingClientRect();
+        return rect.top <= middle && rect.bottom >= middle;
+      });
+      const id = crossing?.dataset.stepId ?? null;
+      setActive((old) => old === id ? old : id);
+    };
+    const request = () => { if (!raf) raf = requestAnimationFrame(evaluate); };
+    window.addEventListener("scroll", request, { passive: true });
+    window.addEventListener("resize", request);
+    request();
+    return () => { window.removeEventListener("scroll", request); window.removeEventListener("resize", request); cancelAnimationFrame(raf); };
   }, []);
-
-  function toggle(id: string) {
-    const next = !open[id];
-    choices.current.set(id, next);
-    setOpen((current) => ({ ...current, [id]: next }));
-  }
-
   return <section className="process-sequence" aria-label="Les quatre étapes d’un projet" ref={sequence}>
     {etapes.map((step) => {
-      const expanded = !!open[step.id];
+      const expanded = active === step.id;
       return <article className={`process-step ${expanded ? "is-expanded" : ""}`} key={step.id} data-step-id={step.id} data-open={expanded}>
         <span className="process-step-number" aria-hidden="true">{step.numero}</span>
         <div className="process-step-line" aria-hidden="true" />
         <div className="process-step-copy">
           <p>ÉTAPE / {step.numero}</p>
-          <button className="process-step-toggle" type="button" aria-expanded={expanded} aria-controls={`step-detail-${step.id}`} onClick={() => toggle(step.id)}>
-            <span>{step.titre}</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" /></svg>
-          </button>
+          <h2 className="process-step-title">{step.titre}</h2>
           <div className="process-step-reveal" id={`step-detail-${step.id}`} aria-hidden={!expanded}>
             <div>{step.paragraphes.map((paragraph, index) => <p key={`${step.id}-${index}`}>{paragraph}</p>)}</div>
           </div>
         </div>
-        <span className="process-step-mark" aria-hidden="true"><i /><i /><i /></span>
+        <span className="process-step-symbol"><ProcessIcon id={step.id} /></span>
       </article>;
     })}
   </section>;

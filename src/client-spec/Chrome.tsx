@@ -55,9 +55,10 @@ export function Header() {
 
   return <>
     <header className="site-header">
-      <a className="site-brand" href="/#accueil" aria-label="FORMA — revenir à l’accueil" onClick={(event) => { event.preventDefault(); scrollHomeSection("accueil"); }}>
-        <span className="site-brand-mark" aria-hidden="true"><i /><i /><i /></span><span>FORMA<sup>®</sup></span>
+      <a className="site-emblem" href="/#accueil" aria-label="Icône F — revenir à l’accueil" onClick={(event) => { event.preventDefault(); scrollHomeSection("accueil"); }}>
+        <span className="site-brand-mark" aria-hidden="true"><i /><i /><i /></span>
       </a>
+      <a className="site-brand" href="/#accueil" aria-label="FORMA — revenir à l’accueil" onClick={(event) => { event.preventDefault(); scrollHomeSection("accueil"); }}>FORMA<sup>®</sup></a>
       <div className="site-header-actions">
         <a className="site-account" href="/espace-client" aria-label="Accéder à l’espace client" title="Espace client">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" /><path d="M5 20v-1.3a7 7 0 0 1 14 0V20z" /></svg>
