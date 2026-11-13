@@ -27,3 +27,12 @@
 - Menu : focus à l’ouverture, Échap, contenu principal inerte pendant l’ouverture. Modale : focus contenu, boucle clavier, restauration après fermeture.
 - Deux premiers commits poussés sur GitHub ; finitions et preuves ajoutées dans le commit final de livraison. Aucune action de déploiement, promotion ou modification de production.
 - Prochaine étape : approfondissement artistique des pages et des animations de section, démonstrations métier détaillées, optimisation/accessibilité du moteur historique, puis intégrations selon autorisation. L’interface livrée est fonctionnelle ; l’ensemble de l’objectif premium 10/10 n’est pas déclaré achevé.
+
+# Refonte selon le cahier des charges client — 13 novembre 2026
+- Sauvegarde distante : backup/forma-premium-20261113 (état 724b85a).
+- Branche de travail : feature/forma-client-spec.
+- Header commun : F corrigé par surcharge de géométrie, survol historique conservé, Forma® centré, accès connexion, menu latéral à six entrées exactes.
+- Accueil : animation de trois volumes noirs sur la grille ; séquence originale du grand F exécutée sans modification des fichiers historiques ; CTA exact vers catalogue ; aucun service après le F.
+- Footer commun : structure noire, Forma®, confidentialité, six destinations et termes légaux, sans slogan.
+- Vérification Chromium desktop : centrage 720/1440, six entrées exactes, opacité F=1 lors du scroll ; captures exécutées dans artifacts/client-spec/. Build et conservation des 12 ressources : réussis.
+- Suite : catalogue et exemples authentiques, type de site, formulaire F à trois questions, options au scroll et connexion manipulable.
