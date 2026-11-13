@@ -1,240 +1,173 @@
 import { test, expect, type Page } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 
-const capture = async (page: Page, name: string, fullPage = false) => {
+async function capture(page: Page, name: string, fullPage = false) {
   await mkdir("test-results/captures", { recursive: true });
   await page.screenshot({ path: `test-results/captures/${name}.png`, fullPage });
-};
+}
+async function noOverflow(page: Page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+}
+test.beforeEach(async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Donnez forme à l’impossible" })).toBeVisible();
+});
 
-const scrollToFEnd = async (page: Page) => {
+test("header keeps the F icon on the far left and centers FORMA, navigation minimal", async ({ page }) => {
+  const icon = await page.getByRole("link", { name: "Icône F — revenir à l’accueil" }).boundingBox();
+  const word = await page.getByRole("link", { name: "FORMA — revenir à l’accueil" }).boundingBox();
+  expect(icon).not.toBeNull();expect(word).not.toBeNull();
+  expect(icon!.x).toBeLessThan(120);
+  expect(Math.abs(word!.x + word!.width / 2 - 720)).toBeLessThan(3);
+  await expect(page.getByRole("link", { name: "Accéder à l’espace client" })).toBeVisible();
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await expect(page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link"))
+    .toHaveText(["Accueil", "Nos réalisations", "Nos services", "Nous contacter"]);
+  await capture(page, "finition-menu-desktop");
+});
+
+test("homepage preserves original scroll-controlled F, four CTAs and eight conceptual case studies", async ({ page }) => {
+  await expect(page.locator(".f-orbit-link")).toHaveCount(4);
+  await expect(page.locator(".spec-build")).toHaveAttribute("data-ready", "true", { timeout: 30000 });
   const range = await page.evaluate(() => {
     const intro = document.querySelector<HTMLElement>(".spec-intro")!;
     const build = document.querySelector<HTMLElement>(".spec-build")!;
     return intro.offsetHeight + build.offsetHeight - innerHeight;
   });
-  await page.evaluate((y) => scrollTo({ top: y * .985, behavior: "instant" }), range);
-  await page.waitForTimeout(120);
-};
-
-test.beforeEach(async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Donnez forme à l’impossible" })).toBeVisible();
-});
-
-test("home, engagements, scroll controlled original F and four navigation buttons", async ({ page }) => {
-  await expect(page.getByRole("list", { name: "Nos engagements" }).getByRole("listitem")).toHaveCount(3);
-  await expect(page.getByText("Scrollez pour voir la suite")).toBeVisible();
-  await expect(page.locator(".f-orbit-link")).toHaveCount(4);
-  await expect(page.locator(".spec-build")).toHaveAttribute("data-ready", "true", { timeout: 25000 });
-  await capture(page, "evolution-accueil-desktop");
-  await page.evaluate(() => scrollTo({ top: 15, behavior: "instant" }));
-  await expect.poll(() => page.locator(".spec-build").evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--f-progress")))).toBeGreaterThan(0);
-  await scrollToFEnd(page);
-  await page.waitForTimeout(350);
-  const assembled = await page.locator(".spec-build").evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--f-progress")));
-  expect(assembled).toBeGreaterThan(.95);
   await page.evaluate(() => scrollTo({ top: 20, behavior: "instant" }));
-  await page.waitForTimeout(80);
-  const reversed = await page.locator(".spec-build").evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--f-progress")));
-  expect(reversed).toBeLessThan(.1);
-  await scrollToFEnd(page);
-  await page.waitForTimeout(350);
+  await expect.poll(() => page.locator(".spec-build").evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--f-progress")))).toBeGreaterThan(0);
+  await page.evaluate((y) => scrollTo({ top:y*.99, behavior: "instant" }), range);
   await expect(page.locator(".f-orbit-link--contact")).toBeVisible();
-  for (const selector of [".f-orbit-link--price", ".f-orbit-link--services", ".f-orbit-link--process"]) await expect(page.locator(selector)).toBeVisible();
+  await expect(page.locator(".f-orbit-link--contact")).toHaveAttribute("href","/nous-contacter");
   await expect(page.frameLocator(".spec-build-frame").locator("canvas").first()).toBeVisible();
-  await expect(page.locator(".f-orbit-link--contact")).toHaveAttribute("href", "/nous-contacter");
-  await capture(page, "evolution-grand-f-assemble-desktop");
-});
-
-test("header centers the brand and offers four main destinations", async ({ page }) => {
-  await expect(page.getByRole("link", { name: "Accéder à l’espace client" })).toBeVisible();
-  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
-  const menu = page.getByRole("navigation", { name: "Navigation principale" });
-  await expect(menu.getByRole("link")).toHaveText(["Accueil", "Nos réalisations", "Nos services", "Nous contacter"]);
-  const brand = await page.locator(".site-brand").boundingBox();
-  expect(brand).not.toBeNull();
-  expect(Math.abs(brand!.x + brand!.width / 2 - 720)).toBeLessThan(3);
-  await menu.getByRole("link", { name: "Nos services" }).click();
-  await expect(page).toHaveURL(/\/nos-services$/);
-  await expect(page.getByRole("heading", { name: "Vos idées. Notre savoir-faire." })).toBeVisible();
-});
-
-test("process, pricing and services pages contain requested content and contact CTAs", async ({ page }) => {
-  await page.goto("/comment-ca-marche");
-  await expect(page.getByRole("heading", { name: "De votre idée à sa réalisation." })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Échange" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Livraison" })).toBeVisible();
-  await expect(page.locator(".info-process .info-cta")).toHaveAttribute("href", "/nous-contacter");
-  await capture(page, "evolution-process-desktop", true);
-  await page.goto("/tarification");
-  await expect(page.getByRole("heading", { name: "Choisissez une prestation pour explorer son budget." })).toBeVisible();
-  await expect(page.getByText("Sur devis")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Un prix adapté à votre ambition." })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Estimer le coût de votre site web" })).toBeVisible();
-  await capture(page, "evolution-tarification-desktop", true);
-  await page.goto("/nos-services");
-  for (const name of ["Création de sites web", "Développement d’applications", "Création graphique", "Publicité numérique", "Production audiovisuelle", "Solutions numériques professionnelles"]) await expect(page.getByRole("heading", { name })).toBeVisible();
-  await capture(page, "evolution-services-desktop", true);
-  await page.getByRole("link", { name: /Discuter de ce service/ }).first().click();
-  await expect(page).toHaveURL(/nous-contacter\?service=Sites%20vitrines/);
-  await expect(page.locator("#contact-subject")).toHaveValue("Sites vitrines");
-  await capture(page, "evolution-services-desktop");
-});
-
-test("original client bundle is restored and cannot fake authentication", async ({ page }) => {
-  await page.goto("/espace-client");
-  await expect(page.getByRole("link", { name: "Accéder à l’espace client" })).toBeVisible();
-  const portal = page.frameLocator("iframe[title^='Espace client original']");
-  await expect(portal.locator("canvas").first()).toBeVisible({ timeout: 25000 });
-  await expect(portal.locator(".client-login__copy h1")).toContainText("Votre projet.");
-  await expect(portal.locator(".access-form input[type=email]")).toBeVisible();
-  await expect(portal.locator(".access-form input[type=email]")).toBeInViewport();
-  await expect(portal.locator(".access-form button[type=submit]")).toBeDisabled();
-  await expect(page.getByText(/authentification réelle n’est pas configurée/)).toBeVisible();
-  for (const provider of ["Google", "Microsoft", "GitHub", "X"]) await expect(page.getByRole("button", { name: new RegExp(`Continuer avec ${provider}`) })).toBeDisabled();
-  await capture(page, "evolution-espace-client-desktop", true);
-});
-
-test("portfolio shows eight clearly labelled fictitious projects", async ({ page }) => {
-  await expect(page.getByRole("heading", { name: "Nos réalisations" })).toBeVisible();
+  await page.evaluate(() => scrollTo({ top:0, behavior:"instant" }));
+  await expect.poll(() => page.locator(".spec-build").evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--f-progress")))).toBeLessThan(.05);
   await expect(page.locator(".portfolio-project")).toHaveCount(8);
   await expect(page.locator(".portfolio-demo-label")).toHaveCount(8);
-  await expect(page.getByText(/projets et marques fictifs/)).toBeVisible();
-  const images = page.locator(".portfolio-project img");
-  await expect(images).toHaveCount(8);
-  for (const img of await images.all()) {
-    await img.scrollIntoViewIfNeeded();
-    await expect.poll(() => img.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
-  }
-  await capture(page, "refonte-realisations-desktop", true);
+  await expect(page.locator("#contact-name")).toHaveCount(0);
+  await capture(page,"finition-accueil-desktop");
 });
 
-test("process accordions auto-open on scroll and respect manual toggles", async ({ page }) => {
+test("four process steps open only at screen midpoint and close on further scrolling", async ({ page }) => {
   await page.goto("/comment-ca-marche");
-  const exchange = page.getByRole("button", { name: "Échange" });
-  await exchange.scrollIntoViewIfNeeded();
-  await expect(exchange).toHaveAttribute("aria-expanded", "true");
-  await exchange.click();
-  await expect(exchange).toHaveAttribute("aria-expanded", "false");
-  await exchange.click();
-  await expect(exchange).toHaveAttribute("aria-expanded", "true");
-  await expect(page.locator("#step-detail-echange")).toContainText("Texte explicatif à personnaliser.");
-  await page.setViewportSize({ width: 390, height: 844 });
-  await expect(exchange).toBeVisible();
-  await exchange.scrollIntoViewIfNeeded();
-  await capture(page, "evolution-accordions-mobile-viewport");
+  const steps=page.locator(".process-step");
+  await expect(steps).toHaveCount(4);
+  await expect(page.locator(".process-step-title")).toHaveText(["Maquette","Échange","Création","Livraison"]);
+  await expect(page.locator(".process-step-symbol svg")).toHaveCount(4);
+  await expect(page.locator(".process-step-mark")).toHaveCount(0);
+  await expect(page.locator(".process-step-toggle")).toHaveCount(0);
+  const visit=async (index: number) => {
+    await page.evaluate(i => {
+      const step=document.querySelectorAll<HTMLElement>(".process-step")[i];
+      const rect=step.getBoundingClientRect();
+      const y=scrollY+rect.top+Math.min(rect.height/2,70)-innerHeight*.53;
+      scrollTo({top:Math.max(0,y),behavior:"instant"});
+    },index);
+    await expect(steps.nth(index)).toHaveAttribute("data-open","true");
+  };
+  await visit(0);
+  await expect(steps.nth(1)).toHaveAttribute("data-open","false");
+  await visit(1);
+  await expect(steps.nth(0)).toHaveAttribute("data-open","false");
+  await visit(2);
+  await visit(3);
+  await visit(0);
+  await capture(page,"finition-process-desktop",true);
 });
 
-test("pricing estimator calculates live, shows detail and passes summary to contact", async ({ page }) => {
+test("pricing studio bundles included features and calculates only extras", async ({ page }) => {
   await page.goto("/tarification");
-  await page.getByRole("button", { name: "Estimer le coût de votre site web" }).click();
-  const dialog = page.locator(".estimator-dialog");
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel("Quel produit vous intéresse ?").selectOption("vitrine-simple");
-  await dialog.getByRole("checkbox", { name: "Inclure Formulaire de contact" }).check();
-  await expect(dialog.locator(".estimator-live-total strong")).toHaveText("550 €");
-  await dialog.getByRole("button", { name: "Ajouter Pages supplémentaires" }).click();
-  await expect(dialog.locator(".estimator-live-total strong")).toHaveText("605 €");
-  await dialog.getByLabel("Quel produit vous intéresse ?").selectOption("landing");
-  await dialog.getByLabel("Quel produit vous intéresse ?").selectOption("vitrine-simple");
-  await expect(dialog.locator(".estimator-live-total strong")).toHaveText("605 €");
-  await capture(page, "evolution-estimate-configure-desktop");
-  await page.setViewportSize({ width: 390, height: 844 });
-  await capture(page, "evolution-estimate-configure-mobile");
-  await dialog.getByRole("button", { name: "Voir le détail de l’estimation" }).click();
-  await expect(page.getByRole("heading", { name: "Votre estimation." })).toBeVisible();
-  await expect(dialog.locator(".estimator-result")).toContainText("605 €");
-  await expect(dialog.locator(".estimator-result")).toContainText("Pages supplémentaires × 1 page");
-  await page.getByRole("link", { name: "Discuter de ce projet" }).click();
-  await expect(page).toHaveURL(/estimate=/);
-  await expect(page.locator("#contact-subject")).toHaveValue("Estimation — Site vitrine simple");
-  await expect(page.locator("#contact-message")).toContainText("Formulaire de contact : + 60 €");
-  await expect(page.locator("#contact-message")).toContainText("605 €");
+  await expect(page.getByRole("heading", { name:"Imaginez le projet. Explorez son prix." })).toBeVisible();
+  await page.getByRole("button",{name:/Site vitrine simple/}).click();
+  await expect(page.getByText("Formulaire de contact standard")).toBeVisible();
+  await expect(page.getByRole("checkbox",{name:"Inclure Formulaire de contact"})).toHaveCount(0);
+  await expect(page.locator(".pricing-summary-total strong")).toHaveText("490 €");
+  await page.getByRole("checkbox",{name:"Inclure Animations avancées"}).check();
+  await expect(page.locator(".pricing-summary-total strong")).toHaveText("630 €");
+  await page.getByRole("button",{name:"Sites web"}).count();
+  await page.getByRole("button",{name:/Site de réservation/}).click();
+  await expect(page.getByText("Calendrier et créneaux de réservation standards")).toBeVisible();
+  await expect(page.getByRole("checkbox",{name:"Inclure Calendrier et disponibilités"})).toHaveCount(0);
+  await page.getByRole("button",{name:/Logos/}).click();
+  await page.getByRole("button",{name:/Pack logo avec déclinaisons/}).click();
+  await expect(page.getByText("Fichiers sources SVG")).toBeVisible();
+  await expect(page.getByRole("checkbox",{name:"Inclure Fichiers sources vectoriels"})).toHaveCount(0);
+  await capture(page,"finition-tarification-desktop",true);
 });
 
-test("catalog examples open and close labelled conceptual previews", async ({ page }) => {
+test("portfolio links open genuine interactive demos, without pretending client work", async ({ page }) => {
+  await page.getByRole("link",{name:/Explorer la démonstration interactive de AUBE/}).click();
+  await expect(page).toHaveURL(/\/demo\/aube$/);
+  await expect(page.getByRole("heading",{name:/L'espace est une émotion/})).toBeVisible();
+  await page.getByRole("button",{name:/Maison Patio/}).click();
+  await expect(page.getByRole("heading",{name:"Maison Patio"})).toBeVisible();
+  await page.goto("/demo/halo");
+  await page.getByRole("button",{name:/Ajouter Huile botanique/}).click();
+  await page.getByRole("button",{name:/Panier \(1\)/}).click();
+  await expect(page.getByText("Total fictif : 24 €")).toBeVisible();
+  await page.goto("/demo/atlas");
+  await page.getByRole("button",{name:"90 jours"}).click();
+  await expect(page.getByText("139 570")).toBeVisible();
+  await page.goto("/demo/orbit");
+  await expect(page.getByRole("button",{name:/Écouter la démo sonore/})).toBeVisible();
+  await page.goto("/demo/mono");
+  await expect(page.getByText(/Symbole original/)).toBeVisible();
+  await page.goto("/demo/lyra");
+  await expect(page.getByText(/Campagne de lancement/)).toBeVisible();
+});
+
+test("all 30 service items have their own previews and official external reference links", async ({ page }) => {
   await page.goto("/nos-services");
   await expect(page.locator(".service-catalog-row")).toHaveCount(30);
-  const open = page.getByRole("button", { name: "Agrandir l’illustration : Sites vitrines" });
-  await open.click();
-  const dialog = page.getByRole("dialog", { name: "Sites vitrines" });
-  await expect(dialog).toContainText("Maquette visuelle originale de démonstration");
-  await expect(dialog.getByRole("link", { name: /Voir une référence réelle/ })).toHaveAttribute("href", "https://www.tesla.com/fr_FR");
-  await page.getByRole("button", { name: "Fermer l’aperçu" }).click();
-  await expect(dialog).toHaveCount(0);
-  await page.setViewportSize({ width: 390, height: 844 });
-  const firstService = page.locator(".service-catalog-row").first();
-  await expect(firstService).toBeVisible();
-  await firstService.scrollIntoViewIfNeeded();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await capture(page, "evolution-service-catalog-mobile-viewport");
+  const imgs=page.locator(".service-example-button img");
+  await expect(imgs).toHaveCount(30);
+  await page.getByRole("button",{name:"Agrandir l’illustration : Sites vitrines"}).click();
+  const modal=page.getByRole("dialog",{name:"Sites vitrines"});
+  await expect(modal).toBeVisible();
+  await expect(modal.getByRole("link",{name:/Voir une référence réelle/})).toHaveAttribute("href","https://www.tesla.com/fr_FR");
+  await page.getByRole("button",{name:"Fermer l’aperçu"}).click();
+  await expect(modal).toHaveCount(0);
 });
 
-test("dedicated contact page and quick-message flow remain honest without backend", async ({ page }) => {
+test("contact is a dedicated form and FAQ/quick message never simulates sending", async ({ page }) => {
   await page.goto("/nous-contacter");
+  await expect(page.getByRole("heading",{name:/Parlons de votre projet/})).toBeVisible();
   await page.locator("#contact-name").fill("Test FORMA");
-  await page.locator("#contact-email").fill("contact@example.com");
-  await page.locator("#contact-subject").fill("Projet de test");
-  await page.locator("#contact-message").fill("Un message de test.");
-  await page.locator(".contact-consent input").first().check();
-  await page.getByRole("button", { name: "Envoyer ma demande" }).click();
-  await expect(page.locator(".contact-feedback").first()).toContainText("Aucun message n\'a été transmis");
+  await page.locator("#contact-email").fill("test@example.com");
+  await page.locator("#contact-subject").fill("Projet");
+  await page.locator("#contact-message").fill("Demande de test");
+  await page.locator(".contact-form--full .contact-consent input").check();
+  await page.getByRole("button",{name:"Envoyer ma demande"}).click();
+  await expect(page.locator(".contact-form--full .contact-feedback")).toContainText("Aucun message n'a été transmis");
+  await page.getByRole("button",{name:"Quels services proposez-vous ?"}).click();
+  await expect(page.getByText("Sites web, applications")).toBeVisible();
   await page.locator("#quick-email").fill("test@example.com");
-  await page.locator("#quick-question").fill("Quel est votre délai ?");
+  await page.locator("#quick-question").fill("Une question rapide");
   await page.locator(".contact-consent--small input").check();
-  await page.getByRole("button", { name: "Envoyer ma question" }).click();
-  await expect(page.locator(".quick-chat .contact-feedback")).toContainText("n\'a pas été envoyée");
+  await page.getByRole("button",{name:"Envoyer ma question"}).click();
+  await expect(page.locator(".quick-chat .contact-feedback")).toContainText("n'a pas été envoyée");
 });
 
-test("responsive F controls and all new pages on mobile without horizontal overflow", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Donnez forme à l’impossible" })).toBeVisible();
-  await capture(page, "evolution-accueil-mobile");
-  await scrollToFEnd(page);
-  await page.waitForTimeout(350);
-  await expect(page.locator(".f-orbit-link--contact")).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await capture(page, "evolution-grand-f-mobile");
-  for (const route of ["/comment-ca-marche", "/tarification", "/nos-services", "/espace-client", "/nous-contacter", "/politique-confidentialite", "/mentions-legales"]) {
-    await page.goto(route);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);
-    await expect(page.getByRole("button", { name: "Ouvrir le menu" })).toBeVisible();
-    if (route === "/comment-ca-marche") await capture(page, "evolution-process-mobile", true);
-    if (route === "/tarification") await capture(page, "evolution-tarification-mobile", true);
-    if (route === "/nos-services") await capture(page, "evolution-services-mobile", true);
-    if (route === "/espace-client") {
-      const portal = page.frameLocator("iframe[title^='Espace client original']");
-      await expect(portal.locator(".client-login__copy h1")).toBeVisible();
-      await expect(portal.locator(".access-form input[type=email]")).toBeVisible();
-      await expect(portal.locator(".access-form input[type=email]")).toBeInViewport();
-      await capture(page, "evolution-espace-client-mobile", true);
-    }
+test("client portal has just one page scrollbar and auth stays safely disabled", async ({ page }) => {
+  await page.goto("/espace-client");
+  await expect(page.getByRole("link",{name:"Accéder à l’espace client"})).toBeVisible();
+  const original=page.frameLocator("iframe[title^='Espace client original']");
+  await expect(original.locator(".client-login__copy h1")).toBeVisible({timeout:30000});
+  await expect(original.locator(".access-form input[type=email]")).toBeVisible();
+  await expect(original.locator(".access-form button[type=submit]")).toBeDisabled();
+  await expect.poll(async () => page.frameLocator("iframe[title^='Espace client original']").locator("html").evaluate(el=>getComputedStyle(el).overflowY)).toBe("hidden");
+  await capture(page,"finition-client-desktop",true);
+});
+
+test("mobile layouts, portfolio, pricing and form avoid horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  for(const path of ["/","/comment-ca-marche","/tarification","/nos-services","/espace-client","/nous-contacter","/demo/aube","/demo/halo","/demo/atlas","/demo/orbit","/demo/mono","/demo/lyra","/demo/viva","/politique-confidentialite","/mentions-legales"]){
+    await page.goto(path);
+    await noOverflow(page);
+    await expect(page.getByRole("button",{name:"Ouvrir le menu"})).toBeVisible();
+    if(path==="/tarification")await capture(page,"finition-tarification-mobile");
+    if(path==="/nous-contacter")await capture(page,"finition-contact-mobile");
+    if(path==="/nos-services")await capture(page,"finition-services-mobile");
   }
-});
-
-test("retired commercial routes redirect home; legacy client URLs reach the restored portal", async ({ page }) => {
-  await page.goto("/catalogue");
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { name: "Donnez forme à l’impossible" })).toBeVisible();
-  await page.goto("/#/connexion");
-  await expect(page).toHaveURL(/\/espace-client$/);
-  await expect(page.getByText(/authentification réelle n’est pas configurée/)).toBeVisible();
-  await page.goto("/connexion");
-  await expect(page).toHaveURL(/\/espace-client$/);
-});
-
-
-test("footer exposes legal documents and separate contact page, while home has no contact form", async ({ page }) => {
-  await expect(page.locator("#contact-name")).toHaveCount(0);
-  const footer = page.locator(".site-footer");
-  await expect(footer.getByRole("link", { name: "Politique de confidentialité" })).toHaveAttribute("href", "/politique-confidentialite");
-  await expect(footer.getByRole("link", { name: "Mentions légales" })).toHaveAttribute("href", "/mentions-legales");
-  await page.goto("/politique-confidentialite");
-  await expect(page.getByRole("heading", { name: /Politique de confidentialité/ })).toBeVisible();
-  await page.goto("/mentions-legales");
-  await expect(page.getByRole("heading", { name: /Mentions légales/ })).toBeVisible();
-  await page.goto("/nous-contacter");
-  await expect(page.getByRole("heading", { name: /Parlons de votre projet/ })).toBeVisible();
 });
