@@ -4,13 +4,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repo = path.resolve(root, '..');
-const report = JSON.parse(fs.readFileSync(path.join(repo, 'forma-public-build/_CAPTURE_REPORT.json'), 'utf8'));
+const repo = root;
+const report = JSON.parse(fs.readFileSync(path.join(repo, 'reference-original/_CAPTURE_REPORT.json'), 'utf8'));
 const digest = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex');
 let verified = 0;
 
 for (const entry of report.downloaded) {
-  const archivedPath = path.join(repo, 'forma-public-build', entry.path);
+  const archivedPath = path.join(repo, 'reference-original', entry.path);
   const localPath = entry.path === 'index.html'
     ? path.join(root, 'public/archive/index.html')
     : path.join(root, 'public', entry.path);
