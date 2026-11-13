@@ -55,7 +55,7 @@ export function Contact() {
       <form className="contact-form" onSubmit={submit} noValidate>
         <div className="contact-field"><label htmlFor="contact-name">Nom</label><input id="contact-name" name="name" autoComplete="name" maxLength={120} required /></div>
         <div className="contact-field"><label htmlFor="contact-email">Adresse e-mail</label><input id="contact-email" name="email" type="email" autoComplete="email" maxLength={254} required /></div>
-        <div className="contact-field"><label htmlFor="contact-subject">Sujet</label><input id="contact-subject" name="subject" maxLength={180} required /></div>
+        <div className="contact-field"><label htmlFor="contact-subject">Sujet</label><input id="contact-subject" name="subject" maxLength={180} defaultValue={new URLSearchParams(location.search).get("service") ?? ""} required /></div>
         <div className="contact-field"><label htmlFor="contact-message">Message</label><textarea id="contact-message" name="message" rows={5} maxLength={5000} required /></div>
         <label className="contact-honeypot" aria-hidden="true">Ne pas remplir<input name="website" tabIndex={-1} autoComplete="off" /></label>
         <button className="contact-submit" type="submit" disabled={sending}>{sending ? "Envoi en cours…" : "Envoyer mon message"}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></button>
