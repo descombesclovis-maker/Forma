@@ -43,15 +43,18 @@ test("home, engagements, scroll controlled original F and four navigation button
   await expect(page.locator(".f-orbit-link--contact")).toBeVisible();
   for (const selector of [".f-orbit-link--price", ".f-orbit-link--services", ".f-orbit-link--process"]) await expect(page.locator(selector)).toBeVisible();
   await expect(page.frameLocator(".spec-build-frame").locator("canvas").first()).toBeVisible();
-  await expect(page.locator(".f-orbit-link--contact")).toHaveAttribute("href", "/#contact");
+  await expect(page.locator(".f-orbit-link--contact")).toHaveAttribute("href", "/nous-contacter");
   await capture(page, "evolution-grand-f-assemble-desktop");
 });
 
-test("header account access and seven destinations work", async ({ page }) => {
+test("header centers the brand and offers four main destinations", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Accéder à l’espace client" })).toBeVisible();
   await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   const menu = page.getByRole("navigation", { name: "Navigation principale" });
-  await expect(menu.getByRole("link")).toHaveText(["Accueil", "Nos réalisations", "Nos services", "Comment ça marche ?", "Tarification", "Contact", "Espace client"]);
+  await expect(menu.getByRole("link")).toHaveText(["Accueil", "Nos réalisations", "Nos services", "Nous contacter"]);
+  const brand = await page.locator(".site-brand").boundingBox();
+  expect(brand).not.toBeNull();
+  expect(Math.abs(brand!.x + brand!.width / 2 - 720)).toBeLessThan(3);
   await menu.getByRole("link", { name: "Nos services" }).click();
   await expect(page).toHaveURL(/\/nos-services$/);
   await expect(page.getByRole("heading", { name: "Vos idées. Notre savoir-faire." })).toBeVisible();
@@ -62,10 +65,10 @@ test("process, pricing and services pages contain requested content and contact 
   await expect(page.getByRole("heading", { name: "De votre idée à sa réalisation." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Échange" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Livraison" })).toBeVisible();
-  await expect(page.locator(".info-process .info-cta")).toHaveAttribute("href", "/#contact");
+  await expect(page.locator(".info-process .info-cta")).toHaveAttribute("href", "/nous-contacter");
   await capture(page, "evolution-process-desktop", true);
   await page.goto("/tarification");
-  await expect(page.getByRole("heading", { name: "Chaque projet mérite sa juste mesure." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choisissez une prestation pour explorer son budget." })).toBeVisible();
   await expect(page.getByText("Sur devis")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Un prix adapté à votre ambition." })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Estimer le coût de votre site web" })).toBeVisible();
@@ -74,7 +77,7 @@ test("process, pricing and services pages contain requested content and contact 
   for (const name of ["Création de sites web", "Développement d’applications", "Création graphique", "Publicité numérique", "Production audiovisuelle", "Solutions numériques professionnelles"]) await expect(page.getByRole("heading", { name })).toBeVisible();
   await capture(page, "evolution-services-desktop", true);
   await page.getByRole("link", { name: /Discuter de ce service/ }).first().click();
-  await expect(page).toHaveURL(/service=Sites%20vitrines/);
+  await expect(page).toHaveURL(/nous-contacter\?service=Sites%20vitrines/);
   await expect(page.locator("#contact-subject")).toHaveValue("Sites vitrines");
   await capture(page, "evolution-services-desktop");
 });
@@ -93,10 +96,18 @@ test("original client bundle is restored and cannot fake authentication", async 
   await capture(page, "evolution-espace-client-desktop", true);
 });
 
-test("portfolio remains empty and truthful", async ({ page }) => {
+test("portfolio shows eight clearly labelled fictitious projects", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Nos réalisations" })).toBeVisible();
-  await expect(page.locator(".portfolio-empty")).toBeVisible();
-  await expect(page.getByText(/Tesla|Nike|McDonald|ChatGPT/)).toHaveCount(0);
+  await expect(page.locator(".portfolio-project")).toHaveCount(8);
+  await expect(page.locator(".portfolio-demo-label")).toHaveCount(8);
+  await expect(page.getByText(/projets et marques fictifs/)).toBeVisible();
+  const images = page.locator(".portfolio-project img");
+  await expect(images).toHaveCount(8);
+  for (const img of await images.all()) {
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(() => img.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  }
+  await capture(page, "refonte-realisations-desktop", true);
 });
 
 test("process accordions auto-open on scroll and respect manual toggles", async ({ page }) => {
@@ -148,7 +159,8 @@ test("catalog examples open and close labelled conceptual previews", async ({ pa
   const open = page.getByRole("button", { name: "Agrandir l’illustration : Sites vitrines" });
   await open.click();
   const dialog = page.getByRole("dialog", { name: "Sites vitrines" });
-  await expect(dialog).toContainText("Illustration conceptuelle originale");
+  await expect(dialog).toContainText("Maquette visuelle originale de démonstration");
+  await expect(dialog.getByRole("link", { name: /Voir une référence réelle/ })).toHaveAttribute("href", "https://www.tesla.com/fr_FR");
   await page.getByRole("button", { name: "Fermer l’aperçu" }).click();
   await expect(dialog).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -159,13 +171,20 @@ test("catalog examples open and close labelled conceptual previews", async ({ pa
   await capture(page, "evolution-service-catalog-mobile-viewport");
 });
 
-test("contact validation remains real; no false success without backend", async ({ page }) => {
+test("dedicated contact page and quick-message flow remain honest without backend", async ({ page }) => {
+  await page.goto("/nous-contacter");
   await page.locator("#contact-name").fill("Test FORMA");
   await page.locator("#contact-email").fill("contact@example.com");
   await page.locator("#contact-subject").fill("Projet de test");
   await page.locator("#contact-message").fill("Un message de test.");
-  await page.getByRole("button", { name: "Envoyer mon message" }).click();
-  await expect(page.locator(".contact-feedback")).toContainText("Votre message n’a pas été envoyé");
+  await page.locator(".contact-consent input").first().check();
+  await page.getByRole("button", { name: "Envoyer ma demande" }).click();
+  await expect(page.locator(".contact-feedback").first()).toContainText("Aucun message n\'a été transmis");
+  await page.locator("#quick-email").fill("test@example.com");
+  await page.locator("#quick-question").fill("Quel est votre délai ?");
+  await page.locator(".contact-consent--small input").check();
+  await page.getByRole("button", { name: "Envoyer ma question" }).click();
+  await expect(page.locator(".quick-chat .contact-feedback")).toContainText("n\'a pas été envoyée");
 });
 
 test("responsive F controls and all new pages on mobile without horizontal overflow", async ({ page }) => {
@@ -178,7 +197,7 @@ test("responsive F controls and all new pages on mobile without horizontal overf
   await expect(page.locator(".f-orbit-link--contact")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await capture(page, "evolution-grand-f-mobile");
-  for (const route of ["/comment-ca-marche", "/tarification", "/nos-services", "/espace-client"]) {
+  for (const route of ["/comment-ca-marche", "/tarification", "/nos-services", "/espace-client", "/nous-contacter", "/politique-confidentialite", "/mentions-legales"]) {
     await page.goto(route);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route).toBe(true);
     await expect(page.getByRole("button", { name: "Ouvrir le menu" })).toBeVisible();
@@ -204,4 +223,18 @@ test("retired commercial routes redirect home; legacy client URLs reach the rest
   await expect(page.getByText(/authentification réelle n’est pas configurée/)).toBeVisible();
   await page.goto("/connexion");
   await expect(page).toHaveURL(/\/espace-client$/);
+});
+
+
+test("footer exposes legal documents and separate contact page, while home has no contact form", async ({ page }) => {
+  await expect(page.locator("#contact-name")).toHaveCount(0);
+  const footer = page.locator(".site-footer");
+  await expect(footer.getByRole("link", { name: "Politique de confidentialité" })).toHaveAttribute("href", "/politique-confidentialite");
+  await expect(footer.getByRole("link", { name: "Mentions légales" })).toHaveAttribute("href", "/mentions-legales");
+  await page.goto("/politique-confidentialite");
+  await expect(page.getByRole("heading", { name: /Politique de confidentialité/ })).toBeVisible();
+  await page.goto("/mentions-legales");
+  await expect(page.getByRole("heading", { name: /Mentions légales/ })).toBeVisible();
+  await page.goto("/nous-contacter");
+  await expect(page.getByRole("heading", { name: /Parlons de votre projet/ })).toBeVisible();
 });
