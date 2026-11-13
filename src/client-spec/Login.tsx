@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function ProviderMark({ provider }: { provider: string }) {
   if (provider === "Google") return <svg className="oauth-brand oauth-google" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.72-.06-1.42-.18-2.1H12v3.98h5.38a4.6 4.6 0 0 1-2 3.02v2.46h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.46c-.9.6-2.04.96-3.38.96-2.6 0-4.8-1.75-5.59-4.1H3.06v2.53A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.41 13.99a6 6 0 0 1 0-3.98V7.48H3.06a10 10 0 0 0 0 9.04l3.35-2.53Z"/><path fill="#EA4335" d="M12 5.91c1.47 0 2.78.51 3.82 1.52l2.87-2.87C16.95 2.94 14.7 2 12 2a10 10 0 0 0-8.94 5.48l3.35 2.53c.79-2.35 2.99-4.1 5.59-4.1Z"/></svg>;
@@ -10,13 +10,40 @@ function ProviderMark({ provider }: { provider: string }) {
 /** The archived production portal is served intact in a same-origin frame. */
 export function Login() {
   const frame = useRef<HTMLIFrameElement>(null);
+  const [frameHeight, setFrameHeight] = useState(790);
+  useEffect(() => {
+    let observer: ResizeObserver | undefined;
+    let observed: Element | undefined;
+    const update = () => {
+      const doc = frame.current?.contentDocument;
+      const loginRoot = doc?.querySelector<HTMLElement>(".client-login");
+      if (!doc || !loginRoot) return;
+      const rect = loginRoot.getBoundingClientRect();
+      const bodyRect = doc.body.getBoundingClientRect();
+      const height = Math.min(1600, Math.max(470, Math.ceil(rect.bottom - bodyRect.top + 10)));
+      setFrameHeight((value) => value === height ? value : height);
+      if (observer || typeof ResizeObserver === "undefined") return;
+      observer = new ResizeObserver(update);
+      observed = loginRoot;
+      observer.observe(loginRoot);
+    };
+    const timer = window.setInterval(update, 300);
+    window.addEventListener("resize", update);
+    update();
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("resize", update);
+      if (observer && observed) observer.unobserve(observed);
+      observer?.disconnect();
+    };
+  }, []);
   function adaptOriginalPortal() {
     const doc = frame.current?.contentDocument;
     if (!doc || doc.getElementById("forma-client-integration")) return;
     const integration = doc.createElement("style");
     integration.id = "forma-client-integration";
     integration.textContent = `
-      html,body,#root,.site-shell{height:auto!important;min-height:0!important;overflow:visible!important;background:transparent!important}
+      html,body,#root,.site-shell{height:auto!important;min-height:0!important;overflow:hidden!important;background:transparent!important;scrollbar-width:none!important} html::-webkit-scrollbar,body::-webkit-scrollbar{display:none!important}
       .topbar,.forma-menu,.site-header,.client-login__meta{display:none!important}
       .client-login{min-height:0!important;padding:34px clamp(18px,4vw,58px) 40px!important;background:transparent!important;overflow:visible!important}
       .client-login__grid{opacity:.18!important}
@@ -34,7 +61,7 @@ export function Login() {
     emailForm?.addEventListener("submit", (event) => { event.preventDefault(); event.stopImmediatePropagation(); }, true);
   }
   return <section className="spec-original-login" aria-label="Espace client FORMA">
-    <iframe ref={frame} src="/original-client/index.html#connexion" title="Espace client original FORMA — formes 3D interactives" onLoad={adaptOriginalPortal} allow="autoplay; fullscreen" />
+    <iframe ref={frame} style={{ height: frameHeight }} scrolling="no" src="/original-client/index.html#connexion" title="Espace client original FORMA — formes 3D interactives" onLoad={adaptOriginalPortal} allow="autoplay; fullscreen" />
     <div className="client-auth-state" role="note"><span className="client-auth-dot" />Le portail visuel est restauré, mais l’authentification réelle n’est pas configurée. Le formulaire e-mail et les fournisseurs OAuth restent indisponibles; aucune connexion ne sera simulée.</div>
     <div className="client-oauth-list" aria-label="Fournisseurs OAuth non configurés">{["Google", "Microsoft", "GitHub", "X"].map((provider) => <button key={provider} type="button" disabled aria-disabled="true"><ProviderMark provider={provider} /><span className="client-oauth-label">Continuer avec {provider}</span><span className="client-oauth-status">Indisponible</span></button>)}</div>
   </section>;
