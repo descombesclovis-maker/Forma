@@ -1,8 +1,22 @@
-export type ServiceExample = { path: string; mediaType: "image"; provenance: string; link?: string };
+export type ServiceExample = { path: string; mediaType: "image"; provenance: string; link?: string; demo?: string };
 export type ServiceItem = { id: string; title: string; description: string; example: ServiceExample };
 export type ServiceCategory = { id: string; title: string; description: string; items: ServiceItem[] };
 
-const illustration = (path: string, link?: string): ServiceExample => ({ path, link, mediaType: "image", provenance: "Maquette visuelle originale de démonstration FORMA (non-client). La référence réelle liée est externe et indépendante : elle n’est pas une réalisation de FORMA." });
+const internalDemos: Record<string,string> = {
+  "site-vitrine":"aube", "ecommerce":"halo", "landing-page":"aube", "custom-site":"aube",
+  "web-app":"atlas", "mobile-app":"orbit", "desktop-app":"atlas", "business-app":"atlas", "dashboard":"atlas",
+  "logos":"mono", "identite":"eclat", "supports":"eclat", "banners":"viva", "presentations":"eclat",
+  "photo-ads":"lyra", "video-ads":"lyra", "social-ads":"viva", "promo-animation":"viva", "custom-ads":"viva",
+  "editing":"lyra", "motion":"viva", "graphic-animation":"viva", "presentation-video":"lyra", "short-social":"viva",
+  "automation":"atlas", "internal-tools":"atlas", "management":"atlas", "integrations":"atlas", "custom-solutions":"atlas"
+};
+const illustration = (path: string, link?: string): ServiceExample => {
+  const id = path.split("/").at(-1)?.replace(".svg","") ?? "";
+  return {
+    path, link, demo: internalDemos[id], mediaType: "image",
+    provenance: "Illustration conceptuelle spécifique au service, avec démonstration FORMA complémentaire quand disponible. Toute référence externe demeure indépendante et n’est pas une réalisation de FORMA."
+  };
+};
 
 /** Service descriptions and replaceable preview paths. Example visuals are explicitly conceptual, never client work. */
 export const serviceCatalog: ServiceCategory[] = [

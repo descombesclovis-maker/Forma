@@ -482,3 +482,8 @@
   .concept-ad-story { max-height:390px; }
   .concept-ad-tagline { min-height:245px; }
 }
+
+.service-preview-dialog .service-demo-launch { display:flex; justify-content:space-between; align-items:center; gap:15px; min-height:55px; margin-top:18px; padding:13px 17px; background:#11110f; color:#f4f4ef; font-size:13px; transition:background .25s; }
+.service-preview-dialog .service-demo-launch:hover { background:#32322e; }
+.service-preview-dialog .service-demo-launch span { font-size:20px; }
+.service-preview-dialog .service-example-real-link { margin:13px 0 0; font-size:11px; }

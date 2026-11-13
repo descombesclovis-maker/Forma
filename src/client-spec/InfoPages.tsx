@@ -105,8 +105,10 @@ function ServiceGallery() {
     {preview && <div className="service-preview-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closePreview(); }}>
       <section className="service-preview-dialog" ref={previewDialog} role="dialog" aria-modal="true" aria-labelledby="service-preview-title">
         <button className="estimator-close" type="button" onClick={closePreview} aria-label="Fermer l’aperçu">×</button>
-        <p className="section-eyebrow">EXEMPLE DE PRÉSENTATION · NON-CLIENT</p><h2 id="service-preview-title">{preview.title}</h2>
-        <img src={preview.example.path} alt={`Maquette de démonstration : ${preview.title}`} /><p>{preview.example.provenance}</p>{preview.example.link && <a className="service-example-real-link" href={preview.example.link} target="_blank" rel="noopener noreferrer">Voir une référence réelle de ce type de service <span aria-hidden="true">↗</span></a>}
+        <p className="section-eyebrow">DÉMONSTRATION DE SAVOIR-FAIRE · PROJET FICTIF</p><h2 id="service-preview-title">{preview.title}</h2>
+        <img src={preview.example.path} alt={`Maquette de démonstration : ${preview.title}`} /><p>{preview.example.provenance}</p>
+        {preview.example.demo && <a className="service-demo-launch" href={`/demo/${preview.example.demo}`}>Explorer la démonstration interactive FORMA <span aria-hidden="true">↗</span></a>}
+        {preview.example.link && <a className="service-example-real-link" href={preview.example.link} target="_blank" rel="noopener noreferrer">Voir un exemple réel indépendant de FORMA <span aria-hidden="true">↗</span></a>}
       </section>
     </div>}
   </>;
