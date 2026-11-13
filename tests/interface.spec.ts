@@ -42,6 +42,10 @@ test("header exact, petit F, centrage, menu et footer", async ({ page }) => {
       (e) => e.getBoundingClientRect().x + e.getBoundingClientRect().width / 2,
     );
   expect(Math.abs(center - 640)).toBeLessThan(1);
+  const headerActions = page.locator(".spec-header-right");
+  await expect(headerActions.locator(".spec-account").first()).toBeVisible();
+  await expect(headerActions.locator(".spec-menu-toggle").first()).toBeVisible();
+  expect(await headerActions.locator(".spec-account").evaluate((el) => el.compareDocumentPosition(el.parentElement!.querySelector(".spec-menu-toggle")!) & Node.DOCUMENT_POSITION_FOLLOWING)).toBeTruthy();
   await page
     .getByRole("button", { name: "Ouvrir le menu", exact: true })
     .click();
@@ -86,6 +90,10 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
     "true",
     { timeout: 15000 },
   );
+  await page.evaluate(() => scrollTo(0, 12));
+  await expect.poll(() => page.locator(".spec-build").evaluate((el) => Number(getComputedStyle(el).getPropertyValue("--f-progress")))).toBeGreaterThan(0);
+  await page.evaluate(() => scrollTo(0, 0));
+  await expect.poll(() => page.locator(".spec-build").evaluate((el) => Number(getComputedStyle(el).getPropertyValue("--f-progress")))).toBe(0);
   await page.waitForTimeout(300);
   await shot(page, "accueil-desktop");
   const f = page.frameLocator(".spec-build-frame");
@@ -105,6 +113,8 @@ test("accueil original intégré, intro, F au scroll et CTA unique", async ({
   await page.evaluate(() => scrollTo(0, innerHeight * 1.8));
   await expect(page.locator(".spec-build")).toHaveAttribute("data-cta-ready", "true");
   await expect(page.getByRole("link", { name: "Démarrer mon projet" })).toBeVisible();
+  const ctaBox = (await page.locator(".spec-build-cta").boundingBox())!;
+  expect(ctaBox.x + ctaBox.width / 2).toBeGreaterThan(720);
   await page.getByRole("link", { name: "Démarrer mon projet" }).click();
   await expect(page.locator("main h1")).toHaveText(
     "Choisissez ce que nous allons créer.",
@@ -266,6 +276,10 @@ test("espace client original restauré depuis le bundle vérifié", async ({
   });
   await expect(client.locator(".access-form input[type=email]")).toBeAttached();
   await expect(client.locator(".access-form input[type=password]")).toBeAttached();
+  await expect(client.locator(".client-login__copy h1")).toBeVisible();
+  await expect(client.locator(".forma-oauth__button")).toHaveCount(3);
+  expect(await client.locator(".forma-oauth__button").evaluateAll((buttons) => buttons.every((button) => (button as HTMLButtonElement).disabled))).toBe(true);
+  await expect(client.locator(".forma-oauth__status")).toHaveText("Connexion rapide non configurée.");
   await expect(client.locator(".client-login__gravity-label")).toContainText(
     "DRAG / RELEASE",
   );
@@ -383,6 +397,10 @@ test("mobile tactile, carrousel et réduction des animations", async ({ browser 
   const canvas = client.locator(".client-login__scene canvas");
   await expect(canvas).toBeVisible({ timeout: 20000 });
   await expect(client.locator(".access-form input[type=email]")).toBeAttached();
+  await expect(client.locator(".forma-oauth__button")).toHaveCount(3);
+  const mobileEmail = await client.locator(".access-form input[type=email]").boundingBox();
+  expect(mobileEmail).not.toBeNull();
+  expect(mobileEmail!.y).toBeLessThan(844);
   await shot(page, "connexion-mobile", true);
 
   await page.goto("http://127.0.0.1:5174/#/catalogue");

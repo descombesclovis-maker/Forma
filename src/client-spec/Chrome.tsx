@@ -49,9 +49,6 @@ export function Header({ route }: { route: string }) {
     <>
       <header className="spec-header">
         <div className="spec-header-left">
-          <button className={`spec-menu-toggle ${open ? "is-open" : ""}`} ref={toggle} onClick={() => setOpen(!open)} aria-label={open ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={open} aria-controls="spec-navigation">
-            <i /><i /><i />
-          </button>
           <a className="spec-brand" href={href("accueil")} aria-label="FORMA — accueil"><Mark /></a>
         </div>
         <a className="spec-wordmark" href={href("accueil")} aria-label="FORMA — accueil" onClick={(event) => {
@@ -59,6 +56,9 @@ export function Header({ route }: { route: string }) {
         }}>Forma®</a>
         <div className="spec-header-right">
           <a className="spec-account" href={href("connexion")} aria-label="Vous connecter"><UserIcon /></a>
+          <button className={`spec-menu-toggle ${open ? "is-open" : ""}`} ref={toggle} onClick={() => setOpen(!open)} aria-label={open ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={open} aria-controls="spec-navigation">
+            <i /><i /><i />
+          </button>
         </div>
       </header>
       {open && <>

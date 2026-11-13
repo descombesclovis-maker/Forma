@@ -37,4 +37,18 @@ Les routes publiques utilisent des fragments `/#/…`. Aucun secret n’est néc
 
 ## Connexions restant à réaliser
 
-La connexion et le formulaire de contact affichent honnêtement l’absence de service. Aucune authentification, transmission de message ou transaction n’est simulée. Le projet et ses photos sont conservés en mémoire pendant la navigation ; le rechargement les efface. Les informations juridiques et les capacités des logiciels restent à valider.
+La connexion par mot de passe et le formulaire de contact affichent honnêtement l’absence de service. Aucune authentification, transmission de message ou transaction n’est simulée. Le projet et ses photos sont conservés en mémoire pendant la navigation ; le rechargement les efface. Les informations juridiques et les capacités des logiciels restent à valider.
+
+### Connexion Google / GitHub / X
+
+Les boutons OAuth ne sont activés que lorsqu’un point d’entrée backend est configuré. En local, ajoutez dans `.env.local` :
+
+```dotenv
+VITE_FORMA_OAUTH_START_URL=https://api.votre-domaine.example/auth/oauth/start
+```
+
+Cette variable est une URL publique, jamais un secret. Elle doit pointer vers un backend FORMA qui accepte `?provider=google`, `?provider=github` ou `?provider=x`, puis réalise le flux OAuth du fournisseur. Sans cette variable, les trois boutons restent visibles mais désactivés et l’interface indique clairement que la connexion rapide n’est pas configurée.
+
+**Aucun secret client OAuth ne doit être placé dans Vite, dans une variable `VITE_*`, dans le bundle ou dans le dépôt.** Les identifiants/secrets et les URI de retour Google, GitHub et X doivent être configurés uniquement côté serveur chez chaque fournisseur. Le backend doit générer et vérifier `state` et PKCE, limiter les URI de retour autorisées, valider les jetons côté serveur, puis créer la session FORMA avec un cookie `HttpOnly`, `Secure` (en production) et `SameSite` approprié. Le backend doit aussi gérer les erreurs et renvoyer l’utilisateur vers une page FORMA déterminée. L’application ne prétend pas qu’un utilisateur est connecté tant que cette intégration serveur n’est pas construite et vérifiée.
+
+Le point d’entrée backend et les applications OAuth des fournisseurs ne sont pas configurés dans ce dépôt à ce jour ; les boutons resteront donc désactivés jusqu’à leur mise en place.

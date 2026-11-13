@@ -21,23 +21,27 @@ export function Home() {
       raf = 0;
       const first = intro.current;
       if (first) {
-        const progress = Math.max(0, Math.min(1, -first.getBoundingClientRect().top / Math.max(1, first.offsetHeight)));
-        first.style.setProperty("--intro-progress", String(reduced ? 0 : progress));
+        const introProgress = Math.max(0, Math.min(1, window.scrollY / Math.max(1, first.offsetHeight)));
+        first.style.setProperty("--intro-progress", String(reduced ? 0 : introProgress));
       }
 
       const win = frame.current?.contentWindow;
       const section = win?.document.querySelector<HTMLElement>(".build-section");
       const rootSection = build.current;
       if (win && section && rootSection && installed) {
-        const available = Math.max(1, rootSection.offsetHeight - innerHeight);
-        const progress = reduced
+        const sectionRange = Math.max(1, rootSection.offsetHeight - innerHeight);
+        const journeyRange = Math.max(1, (intro.current?.offsetHeight ?? innerHeight) + sectionRange);
+        const journeyProgress = reduced
           ? 1
-          : Math.max(0, Math.min(1, -rootSection.getBoundingClientRect().top / available));
+          : Math.max(0, Math.min(1, window.scrollY / journeyRange));
+        // Start the original scene on the very first page-scroll pixel. It reaches
+        // its assembled state just before the CTA becomes fully readable.
+        const progress = reduced ? 1 : Math.max(0, Math.min(1, journeyProgress / 0.94));
         rootSection.style.setProperty("--f-progress", String(progress));
-        const ctaOpacity = Math.max(0, Math.min(1, (progress - 0.96) / 0.04));
+        const ctaOpacity = Math.max(0, Math.min(1, (journeyProgress - 0.94) / 0.06));
         rootSection.style.setProperty("--cta-opacity", String(ctaOpacity));
-        const ctaIsVisible = progress >= 0.96;
-        const ctaIsReady = progress >= 0.98;
+        const ctaIsVisible = journeyProgress >= 0.94;
+        const ctaIsReady = journeyProgress >= 0.98;
         rootSection.dataset.ctaVisible = String(ctaIsVisible);
         rootSection.dataset.ctaReady = String(ctaIsReady);
         setCtaVisible((current) => current === ctaIsVisible ? current : ctaIsVisible);
@@ -88,6 +92,11 @@ export function Home() {
           <div className="spec-intro-content">
             <p className="spec-intro-eyebrow">Studio de création numérique</p>
             <h1>Donnez forme à l’impossible</h1>
+            <div className="spec-scroll-cue" aria-label="Scrollez pour voir la suite">
+              <span className="spec-scroll-guide" aria-hidden="true"><i /><i /><i /></span>
+              <span>Scrollez pour voir la suite</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v15m-6-6 6 6 6-6" /></svg>
+            </div>
             <ul className="spec-assurances" aria-label="Nos engagements">
               <li>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.2 2" /></svg>
@@ -103,7 +112,6 @@ export function Home() {
               </li>
             </ul>
           </div>
-          <span className="spec-scroll-guide" aria-hidden="true"><i /><i /><i /></span>
         </div>
       </section>
       <section className="spec-build" data-ready={ready} data-cta-ready={ctaReady} data-cta-visible={ctaVisible} ref={build} aria-label="Assemblage du grand F original au défilement">

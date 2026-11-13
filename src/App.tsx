@@ -9,6 +9,7 @@ import { Login } from "./client-spec/Login";
 import { Contact, Legal } from "./client-spec/Contact";
 import { Home } from "./client-spec/Home";
 import "./client-spec/spec.css";
+import "./client-spec/prompt4.css";
 const routes = [
   "accueil",
   "catalogue",
