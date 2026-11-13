@@ -1,0 +1,26 @@
+{
+  "rewrites": [
+    { "source": "/nos-services", "destination": "/index.html" },
+    { "source": "/comment-ca-marche", "destination": "/index.html" },
+    { "source": "/tarification", "destination": "/index.html" },
+    { "source": "/espace-client", "destination": "/index.html" },
+    { "source": "/connexion", "destination": "/index.html" },
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/client", "destination": "/index.html" },
+    { "source": "/catalogue", "destination": "/index.html" },
+    { "source": "/commande", "destination": "/index.html" },
+    { "source": "/devis", "destination": "/index.html" },
+    { "source": "/paiement", "destination": "/index.html" },
+    { "source": "/produits", "destination": "/index.html" },
+    { "source": "/sites", "destination": "/index.html" },
+    { "source": "/applications", "destination": "/index.html" },
+    { "source": "/logos", "destination": "/index.html" },
+    { "source": "/publicite", "destination": "/index.html" },
+    { "source": "/legal", "destination": "/index.html" },
+    { "source": "/confidentialite", "destination": "/index.html" },
+    { "source": "/choix-site", "destination": "/index.html" },
+    { "source": "/formulaire", "destination": "/index.html" },
+    { "source": "/options", "destination": "/index.html" },
+    { "source": "/logiciels", "destination": "/index.html" }
+  ]
+}
