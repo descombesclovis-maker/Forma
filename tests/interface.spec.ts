@@ -125,7 +125,7 @@ test("all 30 service items have their own previews and official external referen
   await page.getByRole("button",{name:"Agrandir l’illustration : Sites vitrines"}).click();
   const modal=page.getByRole("dialog",{name:"Sites vitrines"});
   await expect(modal).toBeVisible();
-  await expect(modal.getByRole("link",{name:/Voir une référence réelle/})).toHaveAttribute("href","https://www.tesla.com/fr_FR");
+  await expect(modal.getByRole("link",{name:/Voir un exemple réel indépendant/})).toHaveAttribute("href","https://www.tesla.com/fr_FR");
   await page.getByRole("button",{name:"Fermer l’aperçu"}).click();
   await expect(modal).toHaveCount(0);
 });
