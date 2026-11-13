@@ -6,12 +6,10 @@ import { Arrow } from "./Chrome";
 
 type Page = "process" | "pricing" | "services";
 
-const factors = ["Type de prestation", "Complexité du projet", "Fonctionnalités demandées", "Travail de conception", "Niveau de personnalisation", "Besoins complémentaires"];
-
 function PageIntro({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return <header className="info-hero"><p className="section-eyebrow">{eyebrow}</p><h1>{title}</h1><p>{description}</p><span className="info-hero-index">FORMA / STUDIO NUMÉRIQUE</span><div className="info-hero-mark" aria-hidden="true"><i /><i /><i /></div></header>;
 }
-function ContactCta({ children = "Parlons de votre projet", href = "/#contact" }: { children?: string; href?: string }) {
+function ContactCta({ children = "Parlons de votre projet", href = "/nous-contacter" }: { children?: string; href?: string }) {
   return <a className="contact-submit info-cta" href={href}>{children}<Arrow /></a>;
 }
 
@@ -82,7 +80,7 @@ function PriceEstimator({ category, onClose }: { category: PricingCategory; onCl
     ...(recurring ? [`Frais récurrents estimés : ${formatEUR(recurring)} / mois`] : []),
     "Estimation indicative, non contractuelle. TVA non indiquée; régime fiscal de FORMA à confirmer.",
   ].join("\n");
-  const contactHref = `/?service=${encodeURIComponent(`Estimation — ${product.label}`)}&estimate=${encodeURIComponent(summary)}#contact`;
+  const contactHref = `/nous-contacter?service=${encodeURIComponent(`Estimation — ${product.label}`)}&estimate=${encodeURIComponent(summary)}`;
 
   useEffect(() => {
     if (summaryView) requestAnimationFrame(() => dialogRef.current?.querySelector<HTMLElement>("#estimator-title")?.focus());
@@ -166,13 +164,11 @@ function PricingPage() {
   }, []);
   const services = pricing;
   return <>
-    <section className="pricing-services pricing-services--estimator"><p className="section-eyebrow">ESTIMATIONS INDICATIVES · EN EUROS</p><h2>Choisissez une prestation pour explorer son budget.</h2>
+    <section className="pricing-services pricing-services--estimator"><span className="pricing-ghost-f" aria-hidden="true"><i /><i /><i /></span><p className="section-eyebrow">ESTIMATIONS INDICATIVES · EN EUROS</p><h1>Choisissez une prestation pour explorer son budget.</h1>
       <p className="pricing-intro-copy">Ces montants de départ sont des repères à affiner ensemble. Ils ne constituent pas un devis contractuel et ne créent aucune commande.</p>
       <div>{services.map((service, i) => <div className="pricing-estimate-row" key={service.id}><span>0{i + 1}</span><strong>{service.label}</strong><button type="button" onClick={(event) => { returnFocus.current = event.currentTarget; setActive(service); }}>Estimer le coût de votre {service.id === "web" ? "site web" : service.id === "app" ? "application" : service.id === "logo" ? "logo" : "publicité"}<Arrow /></button></div>)}</div>
       <p className="pricing-tax-note">Les montants affichés sont hors mention de TVA : le régime fiscal applicable à FORMA doit être confirmé.</p>
     </section>
-    <section className="pricing-transparency"><p className="section-eyebrow">UNE APPROCHE TRANSPARENTE</p><h2>Le prix suit le périmètre réel.</h2><ul>{factors.map((factor, i) => <li key={factor}><span>0{i + 1}</span>{factor}<b>+</b></li>)}</ul></section>
-    <div className="info-cta-row"><p>Un projet en tête ? Échangeons sur vos objectifs et vos besoins.</p><ContactCta /></div>
     {active && <PriceEstimator category={active} onClose={closeEstimator} />}
   </>;
 }
@@ -207,7 +203,7 @@ function ServiceGallery() {
         <header className="service-category-heading"><span>{String(categoryIndex + 1).padStart(2, "0")}</span><div><h2 id={`service-category-${category.id}`}>{category.title}</h2><p>{category.description}</p></div></header>
         <div className="service-catalog-list">{category.items.map((item, itemIndex) => <article className="service-catalog-row" key={item.id}>
           <span className="service-catalog-number">{String(itemIndex + 1).padStart(2, "0")}</span>
-          <div className="service-catalog-copy"><h3>{item.title}</h3><p>{item.description}</p><a href={`/?service=${encodeURIComponent(item.title)}#contact`}>Discuter de ce service<Arrow /></a></div>
+          <div className="service-catalog-copy"><h3>{item.title}</h3><p>{item.description}</p><a href={`/nous-contacter?service=${encodeURIComponent(item.title)}`}>Discuter de ce service<Arrow /></a></div>
           <button className="service-example-button" type="button" onClick={(event) => { returnFocus.current = event.currentTarget; setPreview(item); }} aria-label={`Agrandir l’illustration : ${item.title}`}>
             <img src={item.example.path} alt={`Illustration conceptuelle du service ${item.title}`} loading="lazy" /><span className="service-example-caption">{item.title}</span><span className="service-example-source">ILLUSTRATION CONCEPTUELLE</span>
           </button>
@@ -231,10 +227,7 @@ export function InfoPage({ page }: { page: Page }) {
     <ProcessSequence />
     <div className="info-cta-row"><p>Chaque projet est différent. Commençons par en parler.</p><ContactCta /></div>
   </main>;
-  if (page === "pricing") return <main className="info-page info-pricing">
-    <PageIntro eyebrow="Une estimation juste" title="Chaque projet mérite sa juste mesure." description="Des repères transparents, modulables selon votre besoin réel et les options souhaitées. Explorez une estimation indicative sans engagement ni paiement." />
-    <PricingPage />
-  </main>;
+  if (page === "pricing") return <main className="info-page info-pricing info-pricing--simple"><PricingPage /></main>;
   return <main className="info-page info-services">
     <PageIntro eyebrow="Un studio, plusieurs terrains d’expression" title="Vos idées. Notre savoir-faire." description="Un catalogue de créations numériques à explorer. Le périmètre, les outils et les possibilités sont définis avec vous, projet par projet." />
     <ServiceGallery />

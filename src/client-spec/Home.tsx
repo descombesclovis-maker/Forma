@@ -92,7 +92,7 @@ export function Home() {
           <a className="f-orbit-link f-orbit-link--price" href="/tarification" tabIndex={linksReady ? 0 : -1} aria-hidden={!linksReady}>Tarification</a>
           <a className="f-orbit-link f-orbit-link--services" href="/nos-services" tabIndex={linksReady ? 0 : -1} aria-hidden={!linksReady}>Nos services</a>
           <a className="f-orbit-link f-orbit-link--process" href="/comment-ca-marche" tabIndex={linksReady ? 0 : -1} aria-hidden={!linksReady}>Comment ça marche ?</a>
-          <a className="f-orbit-link f-orbit-link--contact" href="/#contact" onClick={(event) => { event.preventDefault(); document.getElementById("contact")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); history.replaceState(null, "", `${location.pathname}${location.search}#contact`); }} tabIndex={ctaReady ? 0 : -1} aria-hidden={!ctaReady}>Parlons de votre projet <Arrow /></a>
+          <a className="f-orbit-link f-orbit-link--contact" href="/nous-contacter" tabIndex={ctaReady ? 0 : -1} aria-hidden={!ctaReady}>Parlons de votre projet <Arrow /></a>
         </nav>
       </div>
     </section>
