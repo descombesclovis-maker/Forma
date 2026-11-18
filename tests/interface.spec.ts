@@ -186,3 +186,11 @@ test("small phones, tablets and widescreen desktop keep one document width and u
     }
   }
 });
+
+
+test("portail sans Supabase refuse de simuler la connexion et les données client", async ({ page }) => {
+  await page.goto("/espace-client");
+  await expect(page.getByRole("status").filter({ hasText: "en cours de configuration" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mes projets" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Créer le compte" })).toHaveCount(0);
+});

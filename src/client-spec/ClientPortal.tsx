@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Login } from "./Login";
-import { authConfigured, currentSession, loadDashboard, register, resetPassword, signIn, signOut, socialLogin, type Client, type Session } from "./forma-auth";
+import { authConfigured, currentSession, loadDashboard, register, resetPassword, updatePassword, signIn, signOut, socialLogin, type Client, type Session } from "./forma-auth";
 import "./client-portal.css";
 
 type Dashboard = Awaited<ReturnType<typeof loadDashboard>>;
@@ -33,7 +33,7 @@ export function ClientPortal() {
       else setData(null);
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Connexion impossible."); }
   }
-  useEffect(() => { let alive = true; reconnect().finally(() => { if (alive) setLoading(false); }); return () => { alive = false; }; }, []);
+  useEffect(() => { let alive = true; if (new URLSearchParams(location.hash.replace(/^#/, "")).get("type") === "recovery") setMode("change"); reconnect().finally(() => { if (alive) setLoading(false); }); return () => { alive = false; }; }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setNotice(""); setBusy(true);
@@ -41,7 +41,12 @@ export function ClientPortal() {
     const email = String(values.get("email") || "").trim();
     const password = String(values.get("password") || "");
     try {
-      if (mode === "reset") {
+      if (mode === "change") {
+        if (!session) throw new Error("Lien expiré : demandez une nouvelle réinitialisation.");
+        await updatePassword(password, session);
+        await signOut(); setSession(null); setClient(null); setData(null); setMode("signin");
+        setNotice("Mot de passe modifié. Connectez-vous à nouveau.");
+      } else if (mode === "reset") {
         await resetPassword(email); setNotice("Si ce compte existe, un courriel de réinitialisation sera envoyé.");
       } else if (mode === "signup") {
         const active = await register(email, password);
@@ -57,16 +62,16 @@ export function ClientPortal() {
   if (loading) return <Loading />;
   if (!authConfigured) return <section className="forma-portal-unconfigured"><Login /><p role="status">L'espace client sécurisé est en cours de configuration. Aucun compte n'est activé sur ce site pour le moment.</p></section>;
 
-  if (!session || !client) return <section className="forma-portal-entry">
-    <div className="forma-portal-art" aria-hidden="true"><span>F</span><p>Votre espace, votre projet.</p></div>
+  if (mode === "change" || !session || !client) return <section className="forma-portal-entry">
+    <div className="forma-portal-art"><iframe src="/original-client/index.html#connexion" title="Animation Forma originale" tabIndex={-1} aria-hidden="true" onLoad={event => { const doc = event.currentTarget.contentDocument; if (!doc) return; const style = doc.createElement("style"); style.textContent = "html,body,#root,.site-shell{height:100%!important;overflow:hidden!important;background:transparent!important}.topbar,.forma-menu,.site-header,.access-form,.client-login__copy,.client-login__meta{display:none!important}.client-login{padding:0!important;height:100vh!important;min-height:0!important;overflow:hidden!important;background:transparent!important}.client-login__stage{display:block!important;min-height:0!important;height:100%!important}.client-login__scene{width:100%!important;height:100%!important;max-width:none!important;min-height:0!important}"; doc.head.append(style); }} /><p>Votre espace, votre projet.</p></div>
     <div className="forma-portal-auth">
       <p className="forma-portal-kicker">FORMA / ACCÈS PRIVÉ</p>
-      <h1>{mode === "signup" ? "Créer mon compte." : mode === "reset" ? "Retrouver mon accès." : "Bienvenue."}</h1>
+      <h1>{mode === "signup" ? "Créer mon compte." : mode === "reset" ? "Retrouver mon accès." : mode === "change" ? "Nouveau mot de passe." : "Bienvenue."}</h1>
       <p>Vos projets et documents restent accessibles uniquement depuis votre compte.</p>
       <form onSubmit={submit}>
-        <label>Adresse e-mail<input name="email" type="email" autoComplete="email" required /></label>
-        {mode !== "reset" && <label>Mot de passe<input name="password" type="password" minLength={8} autoComplete={mode === "signup" ? "new-password" : "current-password"} required /></label>}
-        <button type="submit" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "signup" ? "Créer le compte" : mode === "reset" ? "Envoyer le lien" : "Se connecter"}</button>
+        {mode !== "change" && <label>Adresse e-mail<input name="email" type="email" autoComplete="email" required /></label>}
+        {mode !== "reset" && <label>Mot de passe<input name="password" type="password" minLength={8} autoComplete={mode === "signup" || mode === "change" ? "new-password" : "current-password"} required /></label>}
+        <button type="submit" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "signup" ? "Créer le compte" : mode === "reset" ? "Envoyer le lien" : mode === "change" ? "Enregistrer le mot de passe" : "Se connecter"}</button>
       </form>
       {error && <p className="forma-portal-alert" role="alert">{error}</p>}
       {notice && <p className="forma-portal-notice" role="status">{notice}</p>}

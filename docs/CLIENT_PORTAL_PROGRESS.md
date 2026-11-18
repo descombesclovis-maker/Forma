@@ -26,3 +26,9 @@ Le navigateur emploie le jeton Supabase de la session dans sessionStorage (pas d
 - Catalogue à prix contractuels et conditions dépliables/versionnées, achat direct par prestataire sécurisé et webhooks signés, gestion résiliation.
 - Vérification vendeur → approbation client → transfert chiffré de documents et accès révocables → livraison.
 - Mise en ligne seulement après validation humaine et juridique.
+
+## Validation de la branche
+- Build Vite / TypeScript et tests Playwright via GitHub Actions : premier lot réussi (run 44374687437).
+- Préservation de la scène 3D d’origine dans la vue de connexion opérationnelle ; son formulaire historique non configuré reste masqué.
+- Préparation du parcours de changement de mot de passe après lien de récupération Supabase.
+- Authentification réelle non testée en conditions de production sans instance dédiée et fournisseurs OAuth configurés.

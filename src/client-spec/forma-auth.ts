@@ -83,8 +83,11 @@ export function socialLogin(provider: "google" | "github" | "x"): void {
   location.assign(`${url}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(location.origin + "/espace-client")}`);
 }
 export async function resetPassword(email: string): Promise<void> {
-  await request("/auth/v1/recover", { method: "POST",
-    body: JSON.stringify({ email, redirect_to: location.origin + "/espace-client" }) });
+  const redirect = encodeURIComponent(location.origin + "/espace-client");
+  await request(`/auth/v1/recover?redirect_to=${redirect}`, { method: "POST", body: JSON.stringify({ email }) });
+}
+export async function updatePassword(password: string, session: Session): Promise<void> {
+  await request("/auth/v1/user", { method: "PUT", body: JSON.stringify({ password }) }, session.access_token);
 }
 export async function signOut(): Promise<void> {
   const session = stored();
