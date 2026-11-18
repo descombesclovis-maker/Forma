@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { ProviderIcon } from "./ProviderIcons";
 import { Login } from "./Login";
-import { authConfigured, currentSession, loadDashboard, register, resetPassword, updatePassword, signIn, signOut, socialLogin, type Client, type Session } from "./forma-auth";
+import { authConfigured, currentSession, loadDashboard, register, verifySignupCode, resendSignupCode, resetPassword, updatePassword, signIn, signOut, socialLogin, type Client, type Session } from "./forma-auth";
 import "./client-portal.css";
 
 type Dashboard = Awaited<ReturnType<typeof loadDashboard>>;
@@ -21,7 +22,10 @@ export function ClientPortal() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup" | "reset" | "change">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "verify" | "reset" | "change">("signin");
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [resendLockedUntil, setResendLockedUntil] = useState(0);
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const [tab, setTab] = useState<Tab>("overview");
 
   async function reconnect() {
@@ -33,6 +37,7 @@ export function ClientPortal() {
       else setData(null);
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Connexion impossible."); }
   }
+  useEffect(() => { const timer = window.setInterval(() => setCurrentTime(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
   useEffect(() => { let alive = true; if (new URLSearchParams(location.hash.replace(/^#/, "")).get("type") === "recovery") setMode("change"); reconnect().finally(() => { if (alive) setLoading(false); }); return () => { alive = false; }; }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -41,7 +46,14 @@ export function ClientPortal() {
     const email = String(values.get("email") || "").trim();
     const password = String(values.get("password") || "");
     try {
-      if (mode === "change") {
+      if (mode === "verify") {
+        if (!pendingEmail) throw new Error("Inscription introuvable. Recommencez votre inscription.");
+        const code = String(values.get("otp") || "").trim();
+        await verifySignupCode(pendingEmail, code);
+        setMode("signin");
+        setPendingEmail("");
+        await reconnect();
+      } else if (mode === "change") {
         if (!session) throw new Error("Lien expiré : demandez une nouvelle réinitialisation.");
         await updatePassword(password, session);
         await signOut(); setSession(null); setClient(null); setData(null); setMode("signin");
@@ -51,36 +63,45 @@ export function ClientPortal() {
       } else if (mode === "signup") {
         const active = await register(email, password);
         if (active) await reconnect();
-        else setNotice("Vérifiez votre boîte e-mail pour confirmer votre inscription avant de vous connecter.");
+        else { setPendingEmail(email); setMode("verify"); setResendLockedUntil(Date.now() + 60000); setNotice("Un code à six chiffres vous a été envoyé par e-mail."); }
       } else {
         await signIn(email, password); await reconnect();
       }
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Cette opération a échoué."); }
     finally { setBusy(false); }
   }
+  async function resendCode() {
+    if (!pendingEmail || busy || Date.now() < resendLockedUntil) return;
+    setBusy(true); setError(""); setNotice("");
+    try { await resendSignupCode(pendingEmail); setResendLockedUntil(Date.now() + 60000); setNotice("Un nouveau code de confirmation a été envoyé."); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : "Impossible de renvoyer le code."); }
+    finally { setBusy(false); }
+  }
   async function logout() { await signOut(); setSession(null); setClient(null); setData(null); setTab("overview"); }
   if (loading) return <Loading />;
   if (!authConfigured) return <section className="forma-portal-unconfigured"><Login /><p role="status">L'espace client sécurisé est en cours de configuration. Aucun compte n'est activé sur ce site pour le moment.</p></section>;
 
-  if (mode === "change" || !session || !client) return <section className="forma-portal-entry">
+  if (mode === "change" || mode === "verify" || !session || !client) return <section className="forma-portal-entry">
     <div className="forma-portal-art"><iframe src="/original-client/index.html#connexion" title="Animation Forma originale" tabIndex={-1} aria-hidden="true" onLoad={event => { const doc = event.currentTarget.contentDocument; if (!doc) return; const style = doc.createElement("style"); style.textContent = "html,body,#root,.site-shell{height:100%!important;overflow:hidden!important;background:transparent!important}.topbar,.forma-menu,.site-header,.access-form,.client-login__copy,.client-login__meta{display:none!important}.client-login{padding:0!important;height:100vh!important;min-height:0!important;overflow:hidden!important;background:transparent!important}.client-login__stage{display:block!important;min-height:0!important;height:100%!important}.client-login__scene{width:100%!important;height:100%!important;max-width:none!important;min-height:0!important}"; doc.head.append(style); }} /><p>Votre espace, votre projet.</p></div>
     <div className="forma-portal-auth">
       <p className="forma-portal-kicker">FORMA / ACCÈS PRIVÉ</p>
-      <h1>{mode === "signup" ? "Créer mon compte." : mode === "reset" ? "Retrouver mon accès." : mode === "change" ? "Nouveau mot de passe." : "Bienvenue."}</h1>
-      <p>Vos projets et documents restent accessibles uniquement depuis votre compte.</p>
+      <h1>{mode === "signup" ? "Créer mon compte." : mode === "reset" ? "Retrouver mon accès." : mode === "verify" ? "Vérifiez votre e-mail." : mode === "change" ? "Nouveau mot de passe." : "Bienvenue."}</h1>
+      <p>{mode === "verify" ? `Saisissez le code reçu à ${pendingEmail}. Il est personnel et temporaire.` : "Vos projets et documents restent accessibles uniquement depuis votre compte."}</p>
       <form onSubmit={submit}>
-        {mode !== "change" && <label>Adresse e-mail<input name="email" type="email" autoComplete="email" required /></label>}
-        {mode !== "reset" && <label>Mot de passe<input name="password" type="password" minLength={8} autoComplete={mode === "signup" || mode === "change" ? "new-password" : "current-password"} required /></label>}
-        <button type="submit" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "signup" ? "Créer le compte" : mode === "reset" ? "Envoyer le lien" : mode === "change" ? "Enregistrer le mot de passe" : "Se connecter"}</button>
+        {mode !== "change" && mode !== "verify" && <label>Adresse e-mail<input name="email" type="email" autoComplete="email" required /></label>}
+        {mode !== "reset" && mode !== "verify" && <label>Mot de passe<input name="password" type="password" minLength={8} autoComplete={mode === "signup" || mode === "change" ? "new-password" : "current-password"} required /></label>}
+        {mode === "verify" && <label htmlFor="forma-signup-otp">Code de confirmation (6 chiffres)<input id="forma-signup-otp" className="forma-otp-input" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="000000" aria-describedby="forma-otp-help" required onInput={(event) => { event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 6); }}/><span id="forma-otp-help" className="forma-otp-help">Vérifiez les courriels indésirables si nécessaire. Ne communiquez jamais ce code.</span></label>}
+        <button type="submit" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "signup" ? "Créer le compte" : mode === "verify" ? "Valider les 6 chiffres" : mode === "reset" ? "Envoyer le lien" : mode === "change" ? "Enregistrer le mot de passe" : "Se connecter"}</button>
       </form>
       {error && <p className="forma-portal-alert" role="alert">{error}</p>}
       {notice && <p className="forma-portal-notice" role="status">{notice}</p>}
+      {mode === "verify" && <div className="forma-otp-actions"><button type="button" onClick={resendCode} disabled={busy || currentTime < resendLockedUntil}>Renvoyer un code{currentTime < resendLockedUntil ? ` (${Math.ceil((resendLockedUntil - currentTime) / 1000)} s)` : ""}</button><button type="button" onClick={() => {setMode("signup"); setError(""); setNotice(""); }}>Corriger mon e-mail</button></div>}
       {mode === "signin" && <div className="forma-social">
         <span>Ou continuer avec</span>
-        {(["google", "github", "x"] as const).map(provider => <button type="button" key={provider} onClick={() => socialLogin(provider)}>{provider === "x" ? "X" : provider === "github" ? "GitHub" : "Google"}</button>)}
+        {(["google", "github", "x"] as const).map(provider => <button type="button" key={provider} className="forma-provider-button" onClick={() => socialLogin(provider)} title={`Continuer avec ${provider === "x" ? "X" : provider === "github" ? "GitHub" : "Google"}`} aria-label={`Continuer avec ${provider === "x" ? "X" : provider === "github" ? "GitHub" : "Google"}`}><ProviderIcon provider={provider} /></button>)}
       </div>}
       <nav className="forma-portal-auth-links" aria-label="Gestion du compte">
-        {mode !== "signup" && <button type="button" onClick={() => { setMode("signup"); setNotice(""); setError(""); }}>Créer un compte</button>}
+        {mode !== "signup" && mode !== "verify" && <button type="button" onClick={() => { setMode("signup"); setNotice(""); setError(""); }}>Créer un compte</button>}
         {mode !== "signin" && <button type="button" onClick={() => { setMode("signin"); setNotice(""); setError(""); }}>Se connecter</button>}
         {mode === "signin" && <button type="button" onClick={() => { setMode("reset"); setNotice(""); setError(""); }}>Mot de passe oublié ?</button>}
       </nav>

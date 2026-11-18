@@ -5,6 +5,7 @@ on:
       - forma/finitions-responsive-20261113
       - feat/forma-client-portal
       - feat/forma-local-auth
+      - feat/forma-otp-oauth-motion
   workflow_dispatch:
 permissions:
   contents: read

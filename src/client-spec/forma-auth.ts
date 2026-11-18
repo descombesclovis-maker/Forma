@@ -79,6 +79,29 @@ export async function signIn(email: string, password: string): Promise<void> {
     "/auth/v1/token?grant_type=password", { method: "POST", body: JSON.stringify({ email, password }) });
   remember(data);
 }
+/** Confirme une inscription à l'aide du code à 6 chiffres envoyé par Supabase. */
+export async function verifySignupCode(email: string, code: string): Promise<void> {
+  if (!/^\d{6}$/.test(code)) throw new Error("Saisissez exactement six chiffres.");
+  const data = await request<{ access_token?: string; refresh_token?: string; expires_in?: number }>(
+    "/auth/v1/verify", {
+      method: "POST",
+      body: JSON.stringify({ type: "email", email, token: code }),
+    }
+  );
+  if (!data.access_token || !data.refresh_token) {
+    throw new Error("Confirmation reçue, mais la session n'a pas été ouverte. Essayez de vous connecter.");
+  }
+  remember({ access_token: data.access_token, refresh_token: data.refresh_token, expires_in: data.expires_in });
+}
+
+/** Nouveau code uniquement pour une inscription non confirmée (limité par GoTrue). */
+export async function resendSignupCode(email: string): Promise<void> {
+  await request("/auth/v1/resend", {
+    method: "POST",
+    body: JSON.stringify({ type: "signup", email }),
+  });
+}
+
 export function socialLogin(provider: "google" | "github" | "x"): void {
   if (!authConfigured) return;
   // Seuls les prestataires activés dans Supabase peuvent aboutir.
