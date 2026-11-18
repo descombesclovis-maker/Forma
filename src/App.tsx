@@ -3,7 +3,7 @@ import { Header, Footer } from "./client-spec/Chrome";
 import { Contact } from "./client-spec/Contact";
 import { GlobalCursor } from "./client-spec/GlobalCursor";
 import { Home } from "./client-spec/Home";
-import { Login } from "./client-spec/Login";
+import { ClientPortal } from "./client-spec/ClientPortal";
 import { InfoPage } from "./client-spec/InfoPages";
 import { LegalPage } from "./client-spec/Legal";
 import { Projects } from "./client-spec/Projects";
@@ -58,7 +58,7 @@ export default function App() {
     <Header />
     {location.pathname.startsWith("/demo/") && demoSlugs.includes(location.pathname.slice(6)) ? <main><DemoPage slug={location.pathname.slice(6)} /></main>
       : route === "home" ? <main><Home /><Projects /></main>
-      : route === "client" ? <main><Login /></main>
+      : route === "client" ? <main><ClientPortal /></main>
       : route === "contact" ? <main><Contact /></main>
       : route === "privacy" || route === "legal" ? <main><LegalPage page={route} /></main>
       : <InfoPage page={route} />}

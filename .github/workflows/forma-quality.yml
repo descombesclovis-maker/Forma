@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - forma/finitions-responsive-20261113
+      - feat/forma-client-portal
   workflow_dispatch:
 permissions:
   contents: read
