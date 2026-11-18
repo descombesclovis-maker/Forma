@@ -45,6 +45,62 @@ export function GlobalCursor() {
     const enter = () => {
       if (visible) cursor.classList.add("is-visible");
     };
+
+    // Les interactions des scènes 3D sont dans un document iframe same-origin.
+    // Relayer les coordonnées du pointeur au curseur global, sans gêner WebGL.
+    const frameListeners = new Map<HTMLIFrameElement, () => void>();
+    const trackFrame = (iframe: HTMLIFrameElement) => {
+      const child = iframe.contentDocument;
+      if (!child || frameListeners.has(iframe)) return;
+      const inlineStyle = child.createElement("style");
+      inlineStyle.textContent = 'html.forma-frame-custom-cursor,html.forma-frame-custom-cursor *{cursor:none!important}html.forma-frame-custom-cursor :is(input,textarea,[contenteditable="true"]){cursor:text!important}';
+      child.head?.append(inlineStyle);
+      child.documentElement.classList.add("forma-frame-custom-cursor");
+
+      const moveInFrame = (event: PointerEvent) => {
+        if (event.pointerType !== "mouse") return;
+        const rect = iframe.getBoundingClientRect();
+        x = rect.left + event.clientX * (rect.width / Math.max(1, iframe.clientWidth));
+        y = rect.top + event.clientY * (rect.height / Math.max(1, iframe.clientHeight));
+        visible = true;
+        cursor.classList.add("is-visible");
+        if (!frame) {
+          frame = requestAnimationFrame(() => {
+            cursor.style.transform = "translate3d(" + x + "px, " + y + "px, 0) translate(-50%, -50%)";
+            frame = 0;
+          });
+        }
+        const hovered = event.target as Element | null;
+        const interaction = hovered?.closest?.("button,a,[role='button']");
+        cursor.classList.toggle("is-active", !!interaction);
+        cursor.classList.toggle("is-text", !!hovered?.closest?.("input,textarea,[contenteditable='true']"));
+      };
+      const downInFrame = (event: PointerEvent) => {
+        if (event.pointerType === "mouse") cursor.classList.add("is-down");
+      };
+      const upInFrame = () => cursor.classList.remove("is-down");
+      const exitFrame = () => cursor.classList.remove("is-visible", "is-active", "is-down", "is-text");
+      child.addEventListener("pointermove", moveInFrame, { passive: true });
+      child.addEventListener("pointerdown", downInFrame, { passive: true });
+      child.addEventListener("pointerup", upInFrame, { passive: true });
+      child.addEventListener("pointerleave", exitFrame);
+      frameListeners.set(iframe, () => {
+        child.removeEventListener("pointermove", moveInFrame);
+        child.removeEventListener("pointerdown", downInFrame);
+        child.removeEventListener("pointerup", upInFrame);
+        child.removeEventListener("pointerleave", exitFrame);
+        child.documentElement.classList.remove("forma-frame-custom-cursor");
+        inlineStyle.remove();
+      });
+    };
+    const frameLoaded = (event: Event) => {
+      if (!(event.target instanceof HTMLIFrameElement)) return;
+      frameListeners.get(event.target)?.();
+      frameListeners.delete(event.target);
+      trackFrame(event.target);
+    };
+    document.addEventListener("load", frameLoaded, true);
+    document.querySelectorAll("iframe").forEach(trackFrame);
     document.addEventListener("pointermove", move, { passive: true });
     document.addEventListener("pointerover", over, { passive: true });
     document.addEventListener("pointerdown", down, { passive: true });
@@ -54,6 +110,9 @@ export function GlobalCursor() {
     document.addEventListener("pointerenter", enter);
     return () => {
       if (frame) cancelAnimationFrame(frame);
+      document.removeEventListener("load", frameLoaded, true);
+      frameListeners.forEach(cleanup => cleanup());
+      frameListeners.clear();
       root.classList.remove("forma-custom-cursor");
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerover", over);

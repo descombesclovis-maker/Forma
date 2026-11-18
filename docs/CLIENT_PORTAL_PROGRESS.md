@@ -39,3 +39,5 @@ Le navigateur emploie le jeton Supabase de la session dans sessionStorage (pas d
 - Animations de survol/clic et contraste automatique noir/blanc du curseur sur les pages Forma.
 - Recul CSS du canevas 3D archivé pour un cadrage plus large ; FOV interne inchangé faute de sources 3D.
 - Tests réels de courriels et OAuth restent à réaliser sur l'instance Supabase hébergée.
+
+- Curseur contrasté relayé dans les iframes same-origin pour conserver l'interaction 3D ; sans accès aux iframes externes.
