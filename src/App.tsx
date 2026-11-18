@@ -11,6 +11,7 @@ import { DemoPage, demoSlugs } from "./client-spec/Demos";
 import "./client-spec/vitrine.css";
 import "./client-spec/evolution-2.css";
 import "./client-spec/refonte.css";
+import "./client-spec/interaction-polish.css";
 
 type Route = "home" | "process" | "pricing" | "services" | "client" | "contact" | "privacy" | "legal";
 const paths: Record<string, Route> = {

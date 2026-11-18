@@ -194,3 +194,15 @@ test("portail sans Supabase refuse de simuler la connexion et les données clien
   await expect(page.getByRole("heading", { name: "Mes projets" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Créer le compte" })).toHaveCount(0);
 });
+
+test("curseur global à contraste dynamique et animation sur les boutons", async ({ page }) => {
+  await page.goto("/");
+  await page.mouse.move(250, 260);
+  await expect(page.locator(".forma-cursor")).toHaveClass(/is-visible/);
+  await expect(page.locator(".forma-cursor")).toHaveCSS("mix-blend-mode", "difference");
+  await expect(page.locator(".forma-cursor")).toHaveCSS("border-top-color", "rgb(255, 255, 255)");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).hover();
+  await expect(page.locator(".forma-cursor")).toHaveClass(/is-active/);
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await expect(page.getByRole("navigation", { name: "Navigation principale" })).toBeVisible();
+});

@@ -32,3 +32,10 @@ Le navigateur emploie le jeton Supabase de la session dans sessionStorage (pas d
 - Préservation de la scène 3D d’origine dans la vue de connexion opérationnelle ; son formulaire historique non configuré reste masqué.
 - Préparation du parcours de changement de mot de passe après lien de récupération Supabase.
 - Authentification réelle non testée en conditions de production sans instance dédiée et fournisseurs OAuth configurés.
+
+## 18 novembre 2026 — OTP, connexions sociales et finitions
+- Vérification d'inscription par code à six chiffres, renvoi temporisé, template `{{ .Token }}` fourni (activation manuelle dans Supabase).
+- Icônes officielles Google/GitHub/X avec libellés accessibles. Activation OAuth réelle seulement après configuration des client IDs/secrets.
+- Animations de survol/clic et contraste automatique noir/blanc du curseur sur les pages Forma.
+- Recul CSS du canevas 3D archivé pour un cadrage plus large ; FOV interne inchangé faute de sources 3D.
+- Tests réels de courriels et OAuth restent à réaliser sur l'instance Supabase hébergée.

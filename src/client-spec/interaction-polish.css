@@ -1,0 +1,38 @@
+/* FORMA — interactions harmonisées : curseur automatiquement noir/blanc. */
+.forma-cursor { border-color:#fff; background:transparent; mix-blend-mode:difference; }
+.forma-cursor::before { background:#fff; }
+.forma-cursor.is-active { background:#ffffff20; }
+:where(.spec) :where(button:not(:disabled),a[href]) {
+  transition-property:color,background-color,border-color,box-shadow,opacity,filter,transform;
+  transition-duration:.22s;
+  transition-timing-function:cubic-bezier(.16,1,.3,1);
+}
+@media (hover:hover) and (pointer:fine) {
+  :where(.spec) :where(button:not(:disabled),a[href]):hover { filter:brightness(1.06); }
+  :where(.spec) :where(button:not(:disabled),a[href]):active { filter:brightness(.9); }
+  .forma-portal-auth form>button:not(:disabled):hover { transform:translateY(-3px); box-shadow:0 13px 34px #ffffff27; }
+  .forma-portal-auth form>button:not(:disabled):active { transform:translateY(0) scale(.985); }
+  .forma-provider-button:not(:disabled):hover { background:#ffffff13; border-color:#fff9;transform:translateY(-4px) scale(1.06);box-shadow:0 10px 25px #0004; }
+  .forma-provider-button:not(:disabled):active { transform:scale(.93); }
+  .forma-portal-auth-links button:hover,.forma-otp-actions button:hover { background:#fff2;transform:translateY(-2px); }
+  .forma-portal-auth-links button:active,.forma-otp-actions button:active { transform:scale(.97); }
+  .forma-dashboard-tabs button:not(:disabled):hover { transform:translateX(5px);background:#11111110; }
+  .forma-dashboard-tabs button.active:hover { color:#fff;background:#111; }
+  .forma-dashboard-hero button:hover { color:#fff;background:#111;transform:translateY(-2px); }
+  .forma-dashboard-hero button:active { transform:scale(.97); }
+}
+.forma-provider-button { width:61px;height:58px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:1px solid #ffffff55;color:#f5f4ed;border-radius:3px;padding:14px;outline-offset:4px; }
+.forma-provider-icon { width:25px;height:25px;display:block;flex-shrink:0; }
+.forma-otp-input { width:100%;font-size:clamp(25px,4vw,36px)!important;line-height:1.3;
+  font-variant-numeric:tabular-nums;letter-spacing:clamp(7px,1.8vw,18px);text-align:center;
+  font-weight:600;background:#fff1!important;border-color:#fff8!important; }
+.forma-otp-input:focus-visible { border-color:#fff!important;box-shadow:0 0 0 3px #ffffff13; }
+.forma-otp-help { font-size:12px;line-height:1.6;color:#ffffffb3; }
+.forma-otp-actions { display:flex;flex-wrap:wrap;gap:10px;margin:15px 0; }
+.forma-otp-actions button { border:1px solid #ffffff60;padding:12px 15px;background:transparent;color:inherit; }
+.forma-otp-actions button:disabled { opacity:.4;cursor:not-allowed; }
+@media(prefers-reduced-motion:reduce) {
+  :where(.spec) :where(button,a),.forma-portal-auth form>button,.forma-provider-button {transition:none!important;animation:none!important;}
+  .forma-portal-auth form>button:hover,.forma-provider-button:hover { transform:none!important; }
+}
