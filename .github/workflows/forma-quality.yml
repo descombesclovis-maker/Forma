@@ -4,6 +4,7 @@ on:
     branches:
       - forma/finitions-responsive-20261113
       - feat/forma-client-portal
+      - feat/forma-local-auth
   workflow_dispatch:
 permissions:
   contents: read

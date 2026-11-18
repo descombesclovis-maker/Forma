@@ -12,7 +12,9 @@ const storageKey = "forma-client-session-v1";
 export const authConfigured = Boolean(key && /^https:\/\/[^/]+$/.test(url));
 
 function headers(token?: string): HeadersInit {
-  return { apikey: key, Authorization: `Bearer ${token || key}`, "Content-Type": "application/json" };
+  // Une clé sb_publishable_ n'est PAS un JWT. Ne jamais l'envoyer en Bearer.
+  // Le header Authorization est réservé au jeton de la session du client.
+  return { apikey: key, ...(token ? { Authorization: `Bearer ${token}` } : {}), "Content-Type": "application/json" };
 }
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   if (!authConfigured) throw new Error("L'accès privé n'est pas encore configuré.");
