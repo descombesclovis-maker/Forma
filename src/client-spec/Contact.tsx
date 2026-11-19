@@ -13,6 +13,14 @@ const faq = [
   { question: "Comment recevoir une réponse ?", answer: "Décrivez votre question dans le formulaire ou dans la messagerie ci-dessous. Une adresse e-mail est nécessaire pour pouvoir vous répondre.", href: "#fiche-contact", cta: "Accéder au formulaire" },
 ];
 
+class ContactError extends Error {}
+
+function failureFeedback(error: unknown, quick = false): NonNullable<Feedback> {
+  if (!endpoint) return { kind: "info", message: quick ? "La messagerie n'est pas encore connectée : votre question n'a pas été envoyée." : "L'envoi n'est pas encore configuré. Aucun message n'a été transmis." };
+  return { kind: "error", message: error instanceof ContactError ? error.message :
+    "Enregistrement non confirmé. Vérifiez votre connexion puis réessayez avec les mêmes informations." };
+}
+
 async function deliver(payload: MessagePayload, submission: string): Promise<string> {
   if (!endpoint) throw new Error("not-configured");
   const controller = new AbortController();
@@ -21,11 +29,16 @@ async function deliver(payload: MessagePayload, submission: string): Promise<str
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
-      credentials: "omit",
+      credentials: "same-origin",
       signal: controller.signal,
       body: JSON.stringify({ ...payload, submission, consent: true }),
     });
-    if (response.status === 429) throw new Error("Trop de demandes. Réessayez dans une heure.");
+    if (response.status === 401 || response.status === 403)
+      throw new ContactError("Enregistrement non confirmé. Vérifiez votre accès à cette version de Forma puis réessayez.");
+    if (response.status === 400 || response.status === 413)
+      throw new ContactError("Vérifiez les champs obligatoires, l’adresse e-mail et la longueur du message.");
+    if (response.status === 429) throw new ContactError("Trop de demandes. Réessayez dans une heure.");
+    if (response.status >= 500) throw new ContactError("Enregistrement non confirmé. Le service est temporairement indisponible. Réessayez avec les mêmes informations.");
     if (!response.ok) throw new Error();
     const receipt = await response.json();
     if (receipt.recorded !== true || typeof receipt.reference !== "string" ||
@@ -79,7 +92,7 @@ export function Contact() {
       setFeedback({ kind: "success", message: `Votre demande a été enregistrée. Référence : ${reference}.` });
       form.reset();
     } catch (error) {
-      setFeedback({ kind: error instanceof Error && error.message === "not-configured" ? "info" : "error", message: !endpoint ? "L'envoi n'est pas encore configuré. Aucun message n'a été transmis." : error instanceof Error && error.message.startsWith("Trop de demandes") ? error.message : "Enregistrement non confirmé. Vous pouvez réessayer." });
+      setFeedback(failureFeedback(error));
     } finally { setSending(false); }
   }
 
@@ -101,8 +114,8 @@ export function Contact() {
       });
       setQuickFeedback({ kind: "success", message: `Votre question a été enregistrée. Référence : ${reference}.` });
       form.reset();
-    } catch {
-      setQuickFeedback({ kind: endpoint ? "error" : "info", message: endpoint ? "Enregistrement non confirmé. Vous pouvez réessayer." : "La messagerie n'est pas encore connectée : votre question n'a pas été envoyée." });
+    } catch (error) {
+      setQuickFeedback(failureFeedback(error, true));
     } finally { setQuickSending(false); }
   }
 

@@ -37,6 +37,10 @@ test("contact/devis : persistance, autorisations, concurrence, notifications et 
   try {
     for(const patch of [{email:"wrong"},{name:" "},{subject:""},{message:""},{website:"spam"},{consent:false},{kind:"other"}])
       assert.equal((await post({...payload,...patch})).status,400);
+    const rateSecret = process.env.CONTACT_RATE_SECRET;
+    delete process.env.CONTACT_RATE_SECRET;
+    assert.equal((await post(payload)).status,503);
+    process.env.CONTACT_RATE_SECRET = rateSecret;
     const responses=await Promise.all([post(payload),post(payload)]);
     assert.deepEqual(responses.map(r=>r.status).sort(),[200,201]);
     const [a,b]=await Promise.all(responses.map(r=>r.json()));
@@ -69,6 +73,45 @@ test("contact/devis : persistance, autorisations, concurrence, notifications et 
       failures.delete(broken);
     }
     for(let n=0;n<3;n++)assert.equal((await post({...payload,submission:randomUUID(),subject:"Suivi "+n})).status,n===2?429:201);
+    const limited = new pg.Pool({connectionString:process.env.CONTACT_TEST_DATABASE_URL, options:"-c role=pg_read_all_data"});
+    const disconnected = new pg.Pool({host:"127.0.0.1",port:1,connectionTimeoutMillis:300});
+    for (const unavailable of [limited, disconnected]) {
+      const failing = http.createServer(contactMiddleware(handleContact({getPool:()=>unavailable})));
+      const base = await listen(failing);
+      try {
+        const result = await fetch(base+"/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({...payload,email:"failed@example.test",submission:randomUUID()})});
+        assert.equal(result.status,503);
+        assert.deepEqual(await result.json(),{recorded:false});
+        assert.equal((await pool.query("select reference from forma_contact.requests where email='failed@example.test'")).rowCount,0);
+      } finally { failing.close(); await unavailable.end(); }
+    }
+    // Reproduce the hosted schema: correct table grants, RLS enabled, no policies.
+    // The runtime role is cluster-wide. This fixture requires an isolated PostgreSQL cluster.
+    await pool.query(`create role forma_contact_app;
+      grant usage on schema forma_contact to forma_contact_app;
+      grant select,insert on forma_contact.requests to forma_contact_app;
+      grant select,insert,update on forma_contact.notifications to forma_contact_app;
+      alter table forma_contact.requests enable row level security;
+      alter table forma_contact.notifications enable row level security`);
+    const runtime = new pg.Pool({connectionString:process.env.CONTACT_TEST_DATABASE_URL, options:"-c role=forma_contact_app"});
+    const app = http.createServer(contactMiddleware(handleContact({getPool:()=>runtime,send:async()=>{}})));
+    const origin = await listen(app);
+    const attempt = {...payload, email:"rls@example.test", submission:randomUUID()};
+    const submit = () => fetch(origin+"/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(attempt)});
+    try {
+      assert.equal((await submit()).status,503);
+      await pool.query(await readFile(new URL("contact-runtime-policies.sql",import.meta.url),"utf8"));
+      const saved = await submit();
+      assert.equal(saved.status,201);
+      const receipt = await saved.json();
+      assert.equal(receipt.recorded,true);
+      const persisted = await pool.query("select reference from forma_contact.requests where submission=$1",[attempt.submission]);
+      assert.deepEqual(persisted.rows,[{reference:receipt.reference}]);
+      const notifications = await pool.query("select state from forma_contact.notifications where reference=$1",[receipt.reference]);
+      assert.deepEqual(notifications.rows,[{state:"accepted"},{state:"accepted"}]);
+      assert.equal((await (await submit()).json()).reference,receipt.reference);
+    } finally { app.close(); await runtime.end(); }
     const offline=http.createServer(contactMiddleware(handleContact({getPool(){throw new Error("offline")}})));
     const offlineUrl=await listen(offline);
     try {

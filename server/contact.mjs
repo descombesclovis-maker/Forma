@@ -3,7 +3,7 @@ import pg from "pg";
 import nodemailer from "nodemailer";
 
 class Rejection extends Error {
-  constructor(status) { super(); this.status = status; }
+  constructor(status, reason) { super(); this.status = status; this.reason = reason; }
 }
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 function field(value, max, multiline = false) {
@@ -22,7 +22,8 @@ function validate(body) {
 
 async function record(pool, body, address, secret) {
   const item = validate(body);
-  if (!secret || !address) throw new Rejection(503);
+  if (!secret) throw new Rejection(503, "rate_secret_missing");
+  if (!address) throw new Rejection(503, "client_address_missing");
   const source = createHmac("sha256", secret).update(address).digest("hex");
   const fingerprint = createHash("sha256").update(JSON.stringify(item)).digest("hex");
   const db = await pool.connect();
@@ -100,7 +101,7 @@ export async function founder(token) {
 
 let sharedPool;
 export function handleContact({ getPool = () => {
-  if (!process.env.CONTACT_DATABASE_URL) throw new Rejection(503);
+  if (!process.env.CONTACT_DATABASE_URL) throw new Rejection(503, "database_url_missing");
   if (!sharedPool) {
     sharedPool = new pg.Pool({ connectionString: process.env.CONTACT_DATABASE_URL, max: 2, connectionTimeoutMillis: 4000 });
     sharedPool.on("error", () => console.error("Forma contact: connexion inactive interrompue."));
@@ -138,7 +139,14 @@ export function handleContact({ getPool = () => {
       if (fresh) await Promise.allSettled(["email","telegram"].map(channel => dispatch(pool, reference, channel, send)));
       return reply(fresh ? 201 : 200, { recorded: true, reference });
     } catch (error) {
-      return reply(error instanceof Rejection ? error.status : 503, { recorded: false });
+      const status = error instanceof Rejection ? error.status : 503;
+      if (status >= 500) {
+        const reasons = { "42501": "database_permissions", "28P01": "database_credentials",
+          "42P01": "database_schema", ECONNREFUSED: "database_connection", ENOTFOUND: "database_dns",
+          SELF_SIGNED_CERT_IN_CHAIN: "database_tls", UNABLE_TO_VERIFY_LEAF_SIGNATURE: "database_tls" };
+        console.error("Forma contact:", (error instanceof Rejection && error.reason) || reasons[error.code] || "service_unavailable");
+      }
+      return reply(status, { recorded: false });
     }
   };
 }
