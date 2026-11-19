@@ -16,14 +16,28 @@ function headers(token?: string): HeadersInit {
   // Le header Authorization est réservé au jeton de la session du client.
   return { apikey: key, ...(token ? { Authorization: `Bearer ${token}` } : {}), "Content-Type": "application/json" };
 }
+class AuthResponseError extends Error {
+  constructor(readonly status: number, message: string) { super(message); }
+}
+const recoveryKey = storageKey + "-recovery";
+export function recovering() {
+  return sessionStorage.getItem(recoveryKey) === "1" ||
+    new URLSearchParams(location.hash.slice(1)).get("type") === "recovery";
+}
+function forget() {
+  sessionStorage.removeItem(storageKey);
+  sessionStorage.removeItem(recoveryKey);
+}
+
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   if (!authConfigured) throw new Error("L'accès privé n'est pas encore configuré.");
   const response = await fetch(`${url}${path}`, { ...options, headers: { ...headers(token), ...options.headers }, cache: "no-store" });
   if (!response.ok) {
     const data: { msg?: string; message?: string; error_description?: string } = await response.json().catch(() => ({}));
-    throw new Error(data.error_description || data.msg || data.message || "La requête sécurisée a échoué.");
+    throw new AuthResponseError(response.status, data.error_description || data.msg || data.message || "La requête sécurisée a échoué.");
   }
-  return response.status === 204 ? (null as T) : (await response.json() as T);
+  const body = await response.text();
+  return body ? JSON.parse(body) as T : null as T;
 }
 function remember(data: { access_token: string; refresh_token: string; expires_in?: number; expires_at?: number }): Session {
   const session = { access_token: data.access_token, refresh_token: data.refresh_token,
@@ -47,6 +61,8 @@ export async function currentSession(): Promise<{ session: Session; client: Clie
   }
   let session = stored();
   if (hash.has("access_token") && hash.has("refresh_token")) {
+    if (hash.get("type") === "recovery") sessionStorage.setItem(recoveryKey, "1");
+    else sessionStorage.removeItem(recoveryKey);
     session = remember({ access_token: hash.get("access_token")!, refresh_token: hash.get("refresh_token")!,
       expires_in: Number(hash.get("expires_in") || 3600) });
     history.replaceState(null, "", location.pathname + location.search);
@@ -57,14 +73,27 @@ export async function currentSession(): Promise<{ session: Session; client: Clie
     const client = await request<Client>("/auth/v1/user", {}, session.access_token);
     if (!client.id) throw new Error("Session invalide.");
     return { session, client };
-  } catch {
-    sessionStorage.removeItem(storageKey);
-    return null;
+  } catch (error) {
+    if (error instanceof AuthResponseError && [400,401,403].includes(error.status)) {
+      if (stored()?.refresh_token === session.refresh_token) forget();
+      return null;
+    }
+    throw error;
   }
 }
-async function refresh(session: Session): Promise<Session> {
+let refreshing: { token: string; promise: Promise<Session> } | undefined;
+function refresh(session: Session): Promise<Session> {
+  if (refreshing?.token === session.refresh_token) return refreshing.promise;
+  const promise = rotateSession(session).finally(() => {
+    if (refreshing?.promise === promise) refreshing = undefined;
+  });
+  refreshing = { token: session.refresh_token, promise };
+  return promise;
+}
+async function rotateSession(session: Session): Promise<Session> {
   const data = await request<{ access_token: string; refresh_token: string; expires_in: number }>(
     "/auth/v1/token?grant_type=refresh_token", { method: "POST", body: JSON.stringify({ refresh_token: session.refresh_token }) });
+  if (stored()?.refresh_token !== session.refresh_token) throw new Error("La session a changé.");
   return remember(data);
 }
 export async function register(email: string, password: string): Promise<boolean> {
@@ -77,10 +106,15 @@ export async function register(email: string, password: string): Promise<boolean
 export async function signIn(email: string, password: string): Promise<void> {
   const data = await request<{ access_token: string; refresh_token: string; expires_in: number }>(
     "/auth/v1/token?grant_type=password", { method: "POST", body: JSON.stringify({ email, password }) });
+  sessionStorage.removeItem(recoveryKey);
   remember(data);
 }
-/** Confirme une inscription à l'aide du code à 6 chiffres envoyé par Supabase. */
-export async function verifySignupCode(email: string, code: string): Promise<void> {
+export async function requestLoginCode(email: string): Promise<void> {
+  await request("/auth/v1/otp", { method: "POST", body: JSON.stringify({ email, create_user: false }) });
+}
+
+/** Vérifie le code e-mail émis par Supabase pour cette adresse. */
+export async function verifyEmailCode(email: string, code: string): Promise<void> {
   if (!/^\d{6}$/.test(code)) throw new Error("Saisissez exactement six chiffres.");
   const data = await request<{ access_token?: string; refresh_token?: string; expires_in?: number }>(
     "/auth/v1/verify", {
@@ -116,21 +150,20 @@ export async function updatePassword(password: string, session: Session): Promis
 }
 export async function signOut(): Promise<void> {
   const session = stored();
-  sessionStorage.removeItem(storageKey);
-  if (session) await request("/auth/v1/logout", { method: "POST" }, session.access_token).catch(() => undefined);
+  forget();
+  if (session) await request("/auth/v1/logout?scope=local", { method: "POST" }, session.access_token);
 }
-async function selectRows<T>(table: string, columns: string, session: Session): Promise<T[]> {
-  const active = session.expires_at <= Math.floor(Date.now() / 1000) + 60 ? await refresh(session) : session;
-  const rows = await request<T[]>(`/rest/v1/${table}?select=${encodeURIComponent(columns)}&order=created_at.desc&limit=50`, {}, active.access_token);
+async function selectRows<T>(table: string, columns: string, session: Session, clientId: string): Promise<T[]> {
+  const rows = await request<T[]>(`/rest/v1/${table}?select=${encodeURIComponent(columns)}&client_id=eq.${encodeURIComponent(clientId)}&order=created_at.desc&limit=50`, {}, session.access_token);
   if (!Array.isArray(rows)) throw new Error("Réponse privée invalide.");
   return rows;
 }
-export async function loadDashboard(session: Session) {
+export async function loadDashboard(session: Session, clientId: string) {
   const [projects, orders, notifications, activity] = await Promise.all([
-    selectRows<ClientProject>("forma_client_projects", "id,title,status,site_url,created_at", session),
-    selectRows<ClientOrder>("forma_client_orders", "id,reference,status,amount_cents,currency,created_at", session),
-    selectRows<ClientNotification>("forma_client_notifications", "id,title,body,created_at", session),
-    selectRows<ClientActivity>("forma_client_activity", "id,description,created_at", session),
+    selectRows<ClientProject>("forma_client_projects", "id,title,status,site_url,created_at", session, clientId),
+    selectRows<ClientOrder>("forma_client_orders", "id,reference,status,amount_cents,currency,created_at", session, clientId),
+    selectRows<ClientNotification>("forma_client_notifications", "id,title,body,created_at", session, clientId),
+    selectRows<ClientActivity>("forma_client_activity", "id,description,created_at", session, clientId),
   ]);
   return { projects, orders, notifications, activity };
 }

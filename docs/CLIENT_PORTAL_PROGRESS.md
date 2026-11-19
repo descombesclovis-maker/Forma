@@ -65,3 +65,9 @@ Suite générale après correction : 12 scénarios Playwright réussis.
 ## P0.2 — Certificat du pooler Supabase
 
 La fonction de contact inclut le certificat public Supabase Root 2021 CA et fournit son chemin à pg-connection-string avec vérification complète du nom DNS. Validation avec pg 8.23.1 et pg-connection-string 2.14.1 : options TLS et empreinte du fichier déclaré pour Vercel vérifiées, requête SQL chiffrée sur PostgreSQL de test avec une CA de test, refus d’une CA inconnue et d’un nom d’hôte incorrect. Les tests contact/devis et la compilation ont réussi. Le port 5432 du pooler était inaccessible depuis l’environnement de développement. La confirmation attendue sur la Preview reste un POST 201 dont la référence est relue dans Supabase.
+
+## Portail client — connexion et confirmation à six chiffres
+
+Base `c4650c6`, branche `feat/espace-client-session`. Réutilisation du portail et de Supabase Auth. Connexion par mot de passe ou OTP de six chiffres pour un compte existant, restauration après rechargement, rotation unique du jeton et déconnexion de la session courante. Le retour de récupération survit au rechargement. Les quatre lectures sont filtrées par l’identifiant renvoyé par Auth, en plus des politiques RLS. L’administration existante vérifie toujours le fondateur côté serveur.
+
+Le projet Forma a été inspecté en lecture seule : fournisseur Email actif, confirmation requise, lecture anonyme des projets refusée (401), RLS et politiques de lecture par propriétaire sur les quatre tables. Le test navigateur isolé couvre un code refusé puis accepté, le renouvellement, les lectures privées, le refus de l’administration au client, la connexion par mot de passe, la récupération et la déconnexion à 390 et 1366 px. La livraison d’un vrai code et la connexion en Preview nécessitent une boîte contrôlée par un vrai client. Voir `docs/OTP_OAUTH_FORMA.md` pour les réglages de longueur, modèles, SMTP, variables et URL de retour.

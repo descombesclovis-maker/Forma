@@ -1,7 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ProviderIcon } from "./ProviderIcons";
 import { Login } from "./Login";
-import { authConfigured, currentSession, loadDashboard, register, verifySignupCode, resendSignupCode, resetPassword, updatePassword, signIn, signOut, socialLogin, type Client, type Session } from "./forma-auth";
+import { authConfigured, currentSession, recovering, loadDashboard, register, requestLoginCode, verifyEmailCode, resendSignupCode, resetPassword, updatePassword, signIn, signOut, socialLogin, type Client, type Session } from "./forma-auth";
 import "./client-portal.css";
 
 type Dashboard = Awaited<ReturnType<typeof loadDashboard>>;
@@ -22,23 +22,54 @@ export function ClientPortal() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup" | "verify" | "reset" | "change">("signin");
+  const [mode, setMode] = useState<"signin" | "code" | "signup" | "verify" | "reset" | "change">("signin");
+  const [codeFor, setCodeFor] = useState<"signup" | "code">("signup");
   const [pendingEmail, setPendingEmail] = useState("");
   const [resendLockedUntil, setResendLockedUntil] = useState(0);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [tab, setTab] = useState<Tab>("overview");
 
+  const generation = useRef(0);
   async function reconnect() {
+    const id = ++generation.current;
     try {
       const current = await currentSession();
-      setSession(current?.session || null);
-      setClient(current?.client || null);
-      if (current) setData(await loadDashboard(current.session));
-      else setData(null);
-    } catch (failure) { setError(failure instanceof Error ? failure.message : "Connexion impossible."); }
+      if (id !== generation.current) return;
+      setSession(current?.session ?? null);
+      setClient(current?.client ?? null);
+      setData(null);
+      if (current && !recovering()) {
+        try {
+          const dashboard = await loadDashboard(current.session, current.client.id);
+          if (id === generation.current) setData(dashboard);
+        } catch {
+          if (id === generation.current) setError("Impossible de charger vos dossiers. Actualisez la page pour réessayer.");
+        }
+      } else if (!current && (recovering() || mode === "change")) {
+        setMode("reset"); setError("Lien expiré. Demandez un nouveau lien de récupération.");
+      }
+    } catch (failure) {
+      if (id === generation.current) {
+        setData(null); setSession(null); setClient(null);
+        setError(failure instanceof Error ? failure.message : "Connexion impossible.");
+      }
+    }
   }
   useEffect(() => { const timer = window.setInterval(() => setCurrentTime(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
-  useEffect(() => { let alive = true; if (new URLSearchParams(location.hash.replace(/^#/, "")).get("type") === "recovery") setMode("change"); reconnect().finally(() => { if (alive) setLoading(false); }); return () => { alive = false; }; }, []);
+  useEffect(() => {
+    let alive = true;
+    if (recovering()) setMode("change");
+    reconnect().finally(() => { if (alive) setLoading(false); });
+    const resume = () => { if (document.visibilityState === "visible") void reconnect(); };
+    document.addEventListener("visibilitychange", resume);
+    return () => { alive = false; ++generation.current; document.removeEventListener("visibilitychange", resume); };
+  }, []);
+  useEffect(() => {
+    if (!session) return;
+    const delay = (session.expires_at - 60) * 1000 - Date.now();
+    const timer = window.setTimeout(() => void reconnect(), Math.max(1000, delay));
+    return () => window.clearTimeout(timer);
+  }, [session]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setNotice(""); setBusy(true);
@@ -49,21 +80,25 @@ export function ClientPortal() {
       if (mode === "verify") {
         if (!pendingEmail) throw new Error("Inscription introuvable. Recommencez votre inscription.");
         const code = String(values.get("otp") || "").trim();
-        await verifySignupCode(pendingEmail, code);
+        await verifyEmailCode(pendingEmail, code);
         setMode("signin");
         setPendingEmail("");
         await reconnect();
+      } else if (mode === "code") {
+        await requestLoginCode(email);
+        setCodeFor("code"); setPendingEmail(email); setMode("verify"); setResendLockedUntil(Date.now() + 60000);
+        setNotice("Si votre compte est actif, vérifiez votre boîte de réception.");
       } else if (mode === "change") {
         if (!session) throw new Error("Lien expiré : demandez une nouvelle réinitialisation.");
         await updatePassword(password, session);
-        await signOut(); setSession(null); setClient(null); setData(null); setMode("signin");
+        await logout(); setMode("signin");
         setNotice("Mot de passe modifié. Connectez-vous à nouveau.");
       } else if (mode === "reset") {
         await resetPassword(email); setNotice("Si ce compte existe, un courriel de réinitialisation sera envoyé.");
       } else if (mode === "signup") {
         const active = await register(email, password);
         if (active) await reconnect();
-        else { setPendingEmail(email); setMode("verify"); setResendLockedUntil(Date.now() + 60000); setNotice("Un code à six chiffres vous a été envoyé par e-mail."); }
+        else { setCodeFor("signup"); setPendingEmail(email); setMode("verify"); setResendLockedUntil(Date.now() + 60000); setNotice("Un code à six chiffres vous a été envoyé par e-mail."); }
       } else {
         await signIn(email, password); await reconnect();
       }
@@ -73,11 +108,18 @@ export function ClientPortal() {
   async function resendCode() {
     if (!pendingEmail || busy || Date.now() < resendLockedUntil) return;
     setBusy(true); setError(""); setNotice("");
-    try { await resendSignupCode(pendingEmail); setResendLockedUntil(Date.now() + 60000); setNotice("Un nouveau code de confirmation a été envoyé."); }
+    try { await (codeFor === "signup" ? resendSignupCode(pendingEmail) : requestLoginCode(pendingEmail)); setResendLockedUntil(Date.now() + 60000); setNotice("Un nouveau code de confirmation a été envoyé."); }
     catch (failure) { setError(failure instanceof Error ? failure.message : "Impossible de renvoyer le code."); }
     finally { setBusy(false); }
   }
-  async function logout() { await signOut(); setSession(null); setClient(null); setData(null); setTab("overview"); }
+  async function logout() {
+    ++generation.current;
+    setBusy(true); setError(""); setNotice("");
+    setSession(null); setClient(null); setData(null); setTab("overview");
+    try { await signOut(); }
+    catch { setError("Session fermée sur cet appareil. La révocation distante n’a pas pu être confirmée."); }
+    finally { setBusy(false); }
+  }
   if (loading) return <Loading />;
   if (!authConfigured) return <section className="forma-portal-unconfigured"><Login /><p role="status">L'espace client sécurisé est en cours de configuration. Aucun compte n'est activé sur ce site pour le moment.</p></section>;
 
@@ -85,22 +127,23 @@ export function ClientPortal() {
     <div className="forma-portal-art"><iframe src="/original-client/index.html#connexion" title="Animation Forma originale" tabIndex={-1} aria-hidden="true" onLoad={event => { const doc = event.currentTarget.contentDocument; if (!doc) return; const style = doc.createElement("style"); style.textContent = "html,body,#root,.site-shell{height:100%!important;overflow:hidden!important;background:transparent!important}.topbar,.forma-menu,.site-header,.access-form,.client-login__copy,.client-login__meta{display:none!important}.client-login{padding:0!important;height:100vh!important;min-height:0!important;overflow:hidden!important;background:transparent!important}.client-login__stage{display:block!important;min-height:0!important;height:100%!important}.client-login__scene{width:100%!important;height:100%!important;max-width:none!important;min-height:0!important;overflow:visible!important}.client-login__scene canvas{transform:scale(.84)!important;transform-origin:center center!important}"; doc.head.append(style); }} /><p>Votre espace, votre projet.</p></div>
     <div className="forma-portal-auth">
       <p className="forma-portal-kicker">FORMA / ACCÈS PRIVÉ</p>
-      <h1>{mode === "signup" ? "Créer mon compte." : mode === "reset" ? "Retrouver mon accès." : mode === "verify" ? "Vérifiez votre e-mail." : mode === "change" ? "Nouveau mot de passe." : "Bienvenue."}</h1>
+      <h1>{mode === "code" ? "Connexion par code." : mode === "signup" ? "Créer mon compte." : mode === "reset" ? "Retrouver mon accès." : mode === "verify" ? "Vérifiez votre e-mail." : mode === "change" ? "Nouveau mot de passe." : "Bienvenue."}</h1>
       <p>{mode === "verify" ? `Saisissez le code reçu à ${pendingEmail}. Il est personnel et temporaire.` : "Vos projets et documents restent accessibles uniquement depuis votre compte."}</p>
       <form onSubmit={submit}>
         {mode !== "change" && mode !== "verify" && <label>Adresse e-mail<input name="email" type="email" autoComplete="email" required /></label>}
-        {mode !== "reset" && mode !== "verify" && <label>Mot de passe<input name="password" type="password" minLength={8} autoComplete={mode === "signup" || mode === "change" ? "new-password" : "current-password"} required /></label>}
+        {mode !== "code" && mode !== "reset" && mode !== "verify" && <label>Mot de passe<input name="password" type="password" minLength={mode === "signin" ? 1 : 8} autoComplete={mode === "signup" || mode === "change" ? "new-password" : "current-password"} required /></label>}
         {mode === "verify" && <label htmlFor="forma-signup-otp">Code de confirmation (6 chiffres)<input id="forma-signup-otp" className="forma-otp-input" name="otp" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="000000" aria-describedby="forma-otp-help" required onInput={(event) => { event.currentTarget.value = event.currentTarget.value.replace(/\D/g, "").slice(0, 6); }}/><span id="forma-otp-help" className="forma-otp-help">Vérifiez les courriels indésirables si nécessaire. Ne communiquez jamais ce code.</span></label>}
-        <button type="submit" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "signup" ? "Créer le compte" : mode === "verify" ? "Valider les 6 chiffres" : mode === "reset" ? "Envoyer le lien" : mode === "change" ? "Enregistrer le mot de passe" : "Se connecter"}</button>
+        <button type="submit" disabled={busy}>{busy ? "Veuillez patienter…" : mode === "signup" ? "Créer le compte" : mode === "verify" ? "Valider les 6 chiffres" : mode === "code" ? "Recevoir mon code" : mode === "reset" ? "Envoyer le lien" : mode === "change" ? "Enregistrer le mot de passe" : "Se connecter"}</button>
       </form>
       {error && <p className="forma-portal-alert" role="alert">{error}</p>}
       {notice && <p className="forma-portal-notice" role="status">{notice}</p>}
-      {mode === "verify" && <div className="forma-otp-actions"><button type="button" onClick={resendCode} disabled={busy || currentTime < resendLockedUntil}>Renvoyer un code{currentTime < resendLockedUntil ? ` (${Math.ceil((resendLockedUntil - currentTime) / 1000)} s)` : ""}</button><button type="button" onClick={() => {setMode("signup"); setError(""); setNotice(""); }}>Corriger mon e-mail</button></div>}
+      {mode === "verify" && <div className="forma-otp-actions"><button type="button" onClick={resendCode} disabled={busy || currentTime < resendLockedUntil}>Renvoyer un code{currentTime < resendLockedUntil ? ` (${Math.ceil((resendLockedUntil - currentTime) / 1000)} s)` : ""}</button><button type="button" onClick={() => {setMode(codeFor); setError(""); setNotice(""); }}>Corriger mon e-mail</button></div>}
       {mode === "signin" && <div className="forma-social">
         <span>Ou continuer avec</span>
         {(["google", "github", "x"] as const).map(provider => <button type="button" key={provider} className="forma-provider-button" onClick={() => socialLogin(provider)} title={`Continuer avec ${provider === "x" ? "X" : provider === "github" ? "GitHub" : "Google"}`} aria-label={`Continuer avec ${provider === "x" ? "X" : provider === "github" ? "GitHub" : "Google"}`}><ProviderIcon provider={provider} /></button>)}
       </div>}
       <nav className="forma-portal-auth-links" aria-label="Gestion du compte">
+        {mode === "signin" && <button type="button" onClick={() => { setMode("code"); setNotice(""); setError(""); }}>Se connecter par code e-mail</button>}
         {mode !== "signup" && mode !== "verify" && <button type="button" onClick={() => { setMode("signup"); setNotice(""); setError(""); }}>Créer un compte</button>}
         {mode !== "signin" && <button type="button" onClick={() => { setMode("signin"); setNotice(""); setError(""); }}>Se connecter</button>}
         {mode === "signin" && <button type="button" onClick={() => { setMode("reset"); setNotice(""); setError(""); }}>Mot de passe oublié ?</button>}
