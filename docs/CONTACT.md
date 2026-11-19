@@ -51,3 +51,9 @@ Dans les outils réseau du navigateur, filtrer sur le POST de `/api/contact` et 
 Dans le projet Vercel associé à l’URL effectivement ouverte, vérifier Preview, la branche, le commit et la date de prise en compte des variables. Pour le POST public, contrôler le chemin compilé `VITE_FORMA_CONTACT_ENDPOINT=/api/contact`, le secret de quota et la connexion PostgreSQL du rôle applicatif. Les variables d’authentification du fondateur concernent la lecture privée. La fonction signale les échecs par catégorie dans les Runtime Logs, notamment `database_permissions`, `database_credentials`, `database_url_missing` et `rate_secret_missing`. Ne pas copier de corps de requête, cookies ou chaînes de connexion.
 
 Pour valider l’environnement, comparer la référence du reçu avec celle de la ligne en base et de la demande dans l’administration. Réserver les données synthétiques à une base de recette dédiée.
+
+### TLS du pooler Supabase
+
+Pour un hôte `*.pooler.supabase.com`, le serveur impose `sslmode=verify-full` et fournit à `pg` le chemin du certificat public `server/certs/prod-ca-2021.crt` via `sslrootcert`. Vercel inclut ce fichier dans la fonction `api/contact.js`. Le pilote vérifie la chaîne et le nom DNS. Une URI existante avec `sslmode=require` bénéficie de la même vérification. Le certificat Supabase Root 2021 CA expire le 26 avril 2031. En cas de rotation, vérifier la nouvelle autorité auprès de Supabase, mettre à jour le fichier et son empreinte de test.
+
+[Source officielle du certificat](https://supabase-downloads.s3-ap-southeast-1.amazonaws.com/prod/ssl/prod-ca-2021.crt) · [Vérification TLS Supabase](https://supabase.com/docs/guides/platform/ssl-enforcement)

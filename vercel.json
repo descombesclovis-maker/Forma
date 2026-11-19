@@ -4,5 +4,6 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": { "api/contact.js": { "includeFiles": "server/certs/prod-ca-2021.crt" } },
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/" }]
 }

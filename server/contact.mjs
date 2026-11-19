@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import pg from "pg";
+import { contactDatabaseUrl } from "./contact-database.mjs";
 import nodemailer from "nodemailer";
 
 class Rejection extends Error {
@@ -103,7 +104,7 @@ let sharedPool;
 export function handleContact({ getPool = () => {
   if (!process.env.CONTACT_DATABASE_URL) throw new Rejection(503, "database_url_missing");
   if (!sharedPool) {
-    sharedPool = new pg.Pool({ connectionString: process.env.CONTACT_DATABASE_URL, max: 2, connectionTimeoutMillis: 4000 });
+    sharedPool = new pg.Pool({ connectionString: contactDatabaseUrl(process.env.CONTACT_DATABASE_URL), max: 2, connectionTimeoutMillis: 4000 });
     sharedPool.on("error", () => console.error("Forma contact: connexion inactive interrompue."));
   }
   return sharedPool;
