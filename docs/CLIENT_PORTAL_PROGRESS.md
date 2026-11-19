@@ -41,3 +41,13 @@ Le navigateur emploie le jeton Supabase de la session dans sessionStorage (pas d
 - Tests réels de courriels et OAuth restent à réaliser sur l'instance Supabase hébergée.
 
 - Curseur contrasté relayé dans les iframes same-origin pour conserver l'interaction 3D ; sans accès aux iframes externes.
+
+## P0 — Contact et devis gratuit
+
+Branche `feat/contact-devis-p0`, basée sur `f0a7498`. Le développement mobile non commité a été laissé dans sa copie de travail.
+
+- Formulaire public et estimateur reliés à un reçu PostgreSQL. Types contact, question rapide et devis. Numéro professionnel affiché seulement après configuration.
+- Administration `/admin/demandes` réservée au compte fondateur vérifié côté serveur. Consultation du contenu, des références et des états Telegram/SMTP ; relance par canal.
+- Recette ciblée sur PostgreSQL réel et isolé : enregistrement, lecture par une deuxième connexion, validation, conflit d’identifiant, concurrence, dédoublonnage, limitation, accès anonyme/client/fondateur et indisponibilité du stockage. Échecs indépendants des deux canaux et reprise testés avec des prestataires simulés.
+- Chromium sur 390, 820 et 1366 px : devis depuis l’estimateur, conservation du récapitulatif, rejet d’un faux reçu HTML 200, référence après écriture effective, administration fermée au visiteur. Compilation réussie. Suite existante : 12 tests Playwright réussis avec un plafond de 180 s par scénario.
+- Reste à vérifier en recette privée : compte fondateur réel dans Supabase, réception sur son Telegram et réception du courriel dans une boîte autorisée. Aucun paiement, envoi réel de recette ou déploiement de production effectué. Variables, droits et procédure dans `docs/CONTACT.md`.

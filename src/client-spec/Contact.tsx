@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import { Arrow } from "./Chrome";
 
 const endpoint = import.meta.env.VITE_FORMA_CONTACT_ENDPOINT?.trim();
 type Feedback = { kind: "success" | "error" | "info"; message: string } | null;
-type MessagePayload = { name: string; email: string; subject: string; message: string };
+const phone = import.meta.env.VITE_FORMA_PHONE?.trim();
+type MessagePayload = { kind: "contact" | "quote" | "quick"; name: string; email: string; subject: string; message: string };
 
 const faq = [
   { question: "Quel budget prévoir ?", answer: "Vous pouvez obtenir un premier ordre d'idée dans notre estimateur. Le prix définitif dépend du périmètre validé ensemble.", href: "/tarification", cta: "Explorer les estimations" },
@@ -12,7 +13,7 @@ const faq = [
   { question: "Comment recevoir une réponse ?", answer: "Décrivez votre question dans le formulaire ou dans la messagerie ci-dessous. Une adresse e-mail est nécessaire pour pouvoir vous répondre.", href: "#fiche-contact", cta: "Accéder au formulaire" },
 ];
 
-async function deliver(payload: MessagePayload): Promise<void> {
+async function deliver(payload: MessagePayload, submission: string): Promise<string> {
   if (!endpoint) throw new Error("not-configured");
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 15000);
@@ -22,9 +23,14 @@ async function deliver(payload: MessagePayload): Promise<void> {
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       credentials: "omit",
       signal: controller.signal,
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, submission, consent: true }),
     });
-    if (!response.ok) throw new Error("send-failed");
+    if (response.status === 429) throw new Error("Trop de demandes. Réessayez dans une heure.");
+    if (!response.ok) throw new Error();
+    const receipt = await response.json();
+    if (receipt.recorded !== true || typeof receipt.reference !== "string" ||
+        !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(receipt.reference)) throw new Error();
+    return receipt.reference;
   } finally { window.clearTimeout(timeout); }
 }
 
@@ -38,6 +44,18 @@ export function Contact() {
   const estimateSummary = query.get("estimate")?.slice(0, 4000) ?? "";
   const initialSubject = query.get("service")?.slice(0, 180) ?? "";
 
+  const [kind, setKind] = useState<"contact" | "quote">(estimateSummary || location.pathname === "/devis" || query.get("type") === "devis" ? "quote" : "contact");
+  const attempts = useRef(new Map<string, { body: string; key: string }>());
+  async function transmit(payload: MessagePayload) {
+    const body = JSON.stringify(payload);
+    const previous = attempts.current.get(payload.kind);
+    const key = previous?.body === body ? previous.key : crypto.randomUUID();
+    attempts.current.set(payload.kind, { body, key });
+    const reference = await deliver(payload, key);
+    attempts.current.delete(payload.kind);
+    return reference;
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
@@ -46,24 +64,22 @@ export function Contact() {
     const data = new FormData(form);
     if (String(data.get("website") ?? "").trim()) return;
     setSending(true);
-    const details = [
-      `Entreprise : ${String(data.get("company") ?? "").trim() || "Non renseignée"}`,
-      `Téléphone : ${String(data.get("phone") ?? "").trim() || "Non renseigné"}`,
-      `Prestation : ${String(data.get("service") ?? "").trim() || "À définir"}`,
-      `Budget envisagé : ${String(data.get("budget") ?? "").trim() || "À définir"}`,
-    ].join("\n");
+    const details = [["company", "Entreprise"], ["phone", "Téléphone"], ["service", "Prestation"], ["budget", "Budget envisagé"]]
+      .filter(([key]) => String(data.get(key) ?? "").trim())
+      .map(([key,label]) => label + " : " + String(data.get(key)).trim()).join("\n");
     const payload: MessagePayload = {
+      kind,
       name: String(data.get("name") ?? "").trim(),
       email: String(data.get("email") ?? "").trim(),
       subject: String(data.get("subject") ?? "").trim(),
-      message: `${String(data.get("message") ?? "").trim()}\n\n---\n${details}`,
+      message: `${String(data.get("message") ?? "").trim()}${details ? "\n\n" + details : ""}`,
     };
     try {
-      await deliver(payload);
-      setFeedback({ kind: "success", message: "Votre message a été transmis au service configuré. Merci pour votre demande." });
+      const reference = await transmit(payload);
+      setFeedback({ kind: "success", message: `Votre demande a été enregistrée. Référence : ${reference}.` });
       form.reset();
     } catch (error) {
-      setFeedback({ kind: error instanceof Error && error.message === "not-configured" ? "info" : "error", message: !endpoint ? "L'envoi n'est pas encore configuré. Aucun message n'a été transmis." : "L'envoi a échoué. Votre message n'a pas été transmis. Réessayez plus tard." });
+      setFeedback({ kind: error instanceof Error && error.message === "not-configured" ? "info" : "error", message: !endpoint ? "L'envoi n'est pas encore configuré. Aucun message n'a été transmis." : error instanceof Error && error.message.startsWith("Trop de demandes") ? error.message : "Enregistrement non confirmé. Vous pouvez réessayer." });
     } finally { setSending(false); }
   }
 
@@ -76,16 +92,17 @@ export function Contact() {
     if (String(data.get("website") ?? "").trim()) return;
     setQuickSending(true);
     try {
-      await deliver({
-        name: "Question rapide — visiteur FORMA",
+      const reference = await transmit({
+        kind: "quick",
+        name: "",
         email: String(data.get("quickEmail") ?? "").trim(),
         subject: "Question rapide depuis FORMA",
         message: String(data.get("quickQuestion") ?? "").trim(),
       });
-      setQuickFeedback({ kind: "success", message: "Votre question a été envoyée. Vous recevrez une réponse par e-mail." });
+      setQuickFeedback({ kind: "success", message: `Votre question a été enregistrée. Référence : ${reference}.` });
       form.reset();
     } catch {
-      setQuickFeedback({ kind: endpoint ? "error" : "info", message: endpoint ? "La question n'a pas été envoyée. Veuillez réessayer." : "La messagerie n'est pas encore connectée : votre question n'a pas été envoyée." });
+      setQuickFeedback({ kind: endpoint ? "error" : "info", message: endpoint ? "Enregistrement non confirmé. Vous pouvez réessayer." : "La messagerie n'est pas encore connectée : votre question n'a pas été envoyée." });
     } finally { setQuickSending(false); }
   }
 
@@ -94,14 +111,16 @@ export function Contact() {
       <p className="section-eyebrow">FORMA / ÉCHANGEONS</p>
       <h1>Parlons de votre projet<span className="contact-page-dot">.</span></h1>
       <p>Un projet précis, une idée encore en construction ou une simple question : écrivez-nous. Pas besoin d'appeler pour obtenir une première information.</p>
+      {phone && <p>Téléphone professionnel : <a href={`tel:${phone.replace(/[^+0-9]/g, "")}`}>{phone}</a></p>}
       <span className="contact-hero-index">UN MESSAGE SUFFIT POUR COMMENCER — 01/02</span>
     </header>
     <section className="contact-page-main" aria-label="Vos moyens de contact">
       <div className="contact-page-form-panel" id="fiche-contact">
         <div className="contact-block-heading"><span>01 / CONTACT</span><h2>Votre demande.</h2><p>Nous vous répondrons par e-mail. Les champs marqués * sont obligatoires.</p></div>
         <form className="contact-form contact-form--full" onSubmit={submit}>
+          <div className="contact-field"><label htmlFor="request-kind">Type de demande</label><select id="request-kind" value={kind} onChange={e => setKind(e.target.value === "quote" ? "quote" : "contact")}><option value="contact">Renseignements</option><option value="quote">Devis gratuit</option></select></div>
           <div className="contact-field-grid">
-            <div className="contact-field"><label htmlFor="contact-name">Nom *</label><input id="contact-name" name="name" autoComplete="name" maxLength={120} required /></div>
+            <div className="contact-field"><label htmlFor="contact-name">Prénom *</label><input id="contact-name" name="name" autoComplete="given-name" maxLength={120} required /></div>
             <div className="contact-field"><label htmlFor="contact-email">E-mail *</label><input id="contact-email" name="email" type="email" autoComplete="email" maxLength={254} required /></div>
           </div>
           <div className="contact-field-grid">

@@ -91,7 +91,8 @@ export function PricingStudio() {
         </div>
         <div className="pricing-summary-total"><span>Budget ponctuel estimé</span><strong aria-live="polite">{formatEUR(total)}</strong></div>
         {recurring > 0 && <p className="pricing-summary-recurring">+ {formatEUR(recurring)} / mois (frais facultatifs)</p>}
-        <a className="pricing-summary-cta" href={contactHref}>Discuter de cette estimation <Arrow /></a>
+        <a className="pricing-summary-cta" href={contactHref}>Demander mon devis gratuit <Arrow /></a>
+        <a href={`/nous-contacter?service=${encodeURIComponent(product.label)}`}>Nous contacter pour plus de renseignements</a>
         <p className="pricing-summary-disclaimer">Estimation indicative sans engagement, non contractuelle. La TVA, les frais d'hébergement et les services tiers éventuels sont à préciser. Aucun paiement n'est demandé ici.</p>
       </aside>
     </section>

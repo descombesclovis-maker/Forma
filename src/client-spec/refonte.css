@@ -487,3 +487,8 @@
 .service-preview-dialog .service-demo-launch:hover { background:#32322e; }
 .service-preview-dialog .service-demo-launch span { font-size:20px; }
 .service-preview-dialog .service-example-real-link { margin:13px 0 0; font-size:11px; }
+
+.contact-inbox details { padding:1rem 0; border-bottom:1px solid; overflow-wrap:anywhere; }
+.contact-inbox summary,.contact-inbox button { cursor:pointer; min-height:44px; }
+.contact-inbox button { padding:.5rem .85rem; margin:.25rem; }
+.contact-request-message { white-space:pre-wrap; }

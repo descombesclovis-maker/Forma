@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Header, Footer } from "./client-spec/Chrome";
+import { ContactInbox } from "./client-spec/ContactInbox";
 import { Contact } from "./client-spec/Contact";
 import { GlobalCursor } from "./client-spec/GlobalCursor";
 import { Home } from "./client-spec/Home";
@@ -13,19 +14,21 @@ import "./client-spec/evolution-2.css";
 import "./client-spec/refonte.css";
 import "./client-spec/interaction-polish.css";
 
-type Route = "home" | "process" | "pricing" | "services" | "client" | "contact" | "privacy" | "legal";
+type Route = "inbox" | "home" | "process" | "pricing" | "services" | "client" | "contact" | "privacy" | "legal";
 const paths: Record<string, Route> = {
   "/": "home",
   "/comment-ca-marche": "process",
   "/tarification": "pricing",
   "/nos-services": "services",
   "/espace-client": "client",
+  "/admin/demandes": "inbox",
+  "/devis": "contact",
   "/nous-contacter": "contact",
   "/politique-confidentialite": "privacy",
   "/mentions-legales": "legal",
 };
 const clientPaths = new Set(["/connexion", "/login", "/client"]);
-const oldPaths = new Set(["/catalogue", "/commande", "/devis", "/paiement", "/produits", "/sites", "/applications", "/logos", "/publicite", "/legal", "/confidentialite", "/contact"]);
+const oldPaths = new Set(["/catalogue", "/commande", "/paiement", "/produits", "/sites", "/applications", "/logos", "/publicite", "/legal", "/confidentialite", "/contact"]);
 
 function normalizeAddress() {
   if (clientPaths.has(location.pathname)) { window.location.replace("/espace-client"); return; }
@@ -60,6 +63,7 @@ export default function App() {
     {location.pathname.startsWith("/demo/") && demoSlugs.includes(location.pathname.slice(6)) ? <main><DemoPage slug={location.pathname.slice(6)} /></main>
       : route === "home" ? <main><Home /><Projects /></main>
       : route === "client" ? <main><ClientPortal /></main>
+      : route === "inbox" ? <main><ContactInbox /></main>
       : route === "contact" ? <main><Contact /></main>
       : route === "privacy" || route === "legal" ? <main><LegalPage page={route} /></main>
       : <InfoPage page={route} />}
